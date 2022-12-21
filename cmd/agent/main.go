@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"net/http"
 	"runtime"
 	"time"
 )
@@ -12,6 +13,7 @@ type counter int64
 
 type monitor struct {
 	rtm           runtime.MemStats
+	client        http.Client
 	Alloc         gauge
 	BuckHashSys   gauge
 	Frees         gauge
@@ -79,6 +81,17 @@ func (m *monitor) updateMonitor() {
 	m.RandomValue = gauge(rand.Float64())
 }
 
+func (m *monitor) sendData() {
+
+	client := &http.Client{}
+	client.Timeout = time.Second * 1
+
+	//resp, err := client.Post("http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>", "text/plain", nil)
+
+	fmt.Println("Sending data")
+	m.PollCount = 0
+}
+
 func newMonitor(pollInterval, reportInterval int) {
 	var m monitor
 
@@ -92,8 +105,7 @@ func newMonitor(pollInterval, reportInterval int) {
 			fmt.Println(m)
 
 		case <-reportIntervalTicker.C:
-			fmt.Println("Sending data")
-			m.PollCount = 0
+			m.sendData()
 		}
 	}
 }
