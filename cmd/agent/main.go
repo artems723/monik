@@ -3,15 +3,16 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"net/http"
 	"runtime"
 	"time"
 )
 
+// metric types
 type gauge float64
 type counter int64
 
 type monitor struct {
-	rtm           runtime.MemStats
 	Alloc         gauge
 	BuckHashSys   gauge
 	Frees         gauge
@@ -44,41 +45,44 @@ type monitor struct {
 }
 
 func (m *monitor) updateMonitor() {
+	var rtm runtime.MemStats
+
 	//Read memory stats
-	runtime.ReadMemStats(&m.rtm)
+	runtime.ReadMemStats(&rtm)
 
 	//Update metrics
-	m.Alloc = gauge(m.rtm.Alloc)
-	m.BuckHashSys = gauge(m.rtm.BuckHashSys)
-	m.Frees = gauge(m.rtm.Frees)
-	m.GCCPUFraction = gauge(m.rtm.GCCPUFraction)
-	m.GCSys = gauge(m.rtm.GCSys)
-	m.HeapAlloc = gauge(m.rtm.HeapAlloc)
-	m.HeapIdle = gauge(m.rtm.HeapIdle)
-	m.HeapInuse = gauge(m.rtm.HeapInuse)
-	m.HeapObjects = gauge(m.rtm.HeapObjects)
-	m.HeapReleased = gauge(m.rtm.HeapReleased)
-	m.HeapSys = gauge(m.rtm.HeapSys)
-	m.LastGC = gauge(m.rtm.LastGC)
-	m.Lookups = gauge(m.rtm.Lookups)
-	m.MCacheInuse = gauge(m.rtm.MCacheInuse)
-	m.MCacheSys = gauge(m.rtm.MCacheSys)
-	m.MSpanInuse = gauge(m.rtm.MSpanInuse)
-	m.MSpanSys = gauge(m.rtm.MSpanSys)
-	m.Mallocs = gauge(m.rtm.Mallocs)
-	m.NextGC = gauge(m.rtm.NextGC)
-	m.NumForcedGC = gauge(m.rtm.NumForcedGC)
-	m.NumGC = gauge(m.rtm.NumGC)
-	m.OtherSys = gauge(m.rtm.OtherSys)
-	m.PauseTotalNs = gauge(m.rtm.PauseTotalNs)
-	m.StackInuse = gauge(m.rtm.StackInuse)
-	m.StackSys = gauge(m.rtm.StackSys)
-	m.Sys = gauge(m.rtm.Sys)
-	m.TotalAlloc = gauge(m.rtm.TotalAlloc)
+	m.Alloc = gauge(rtm.Alloc)
+	m.BuckHashSys = gauge(rtm.BuckHashSys)
+	m.Frees = gauge(rtm.Frees)
+	m.GCCPUFraction = gauge(rtm.GCCPUFraction)
+	m.GCSys = gauge(rtm.GCSys)
+	m.HeapAlloc = gauge(rtm.HeapAlloc)
+	m.HeapIdle = gauge(rtm.HeapIdle)
+	m.HeapInuse = gauge(rtm.HeapInuse)
+	m.HeapObjects = gauge(rtm.HeapObjects)
+	m.HeapReleased = gauge(rtm.HeapReleased)
+	m.HeapSys = gauge(rtm.HeapSys)
+	m.LastGC = gauge(rtm.LastGC)
+	m.Lookups = gauge(rtm.Lookups)
+	m.MCacheInuse = gauge(rtm.MCacheInuse)
+	m.MCacheSys = gauge(rtm.MCacheSys)
+	m.MSpanInuse = gauge(rtm.MSpanInuse)
+	m.MSpanSys = gauge(rtm.MSpanSys)
+	m.Mallocs = gauge(rtm.Mallocs)
+	m.NextGC = gauge(rtm.NextGC)
+	m.NumForcedGC = gauge(rtm.NumForcedGC)
+	m.NumGC = gauge(rtm.NumGC)
+	m.OtherSys = gauge(rtm.OtherSys)
+	m.PauseTotalNs = gauge(rtm.PauseTotalNs)
+	m.StackInuse = gauge(rtm.StackInuse)
+	m.StackSys = gauge(rtm.StackSys)
+	m.Sys = gauge(rtm.Sys)
+	m.TotalAlloc = gauge(rtm.TotalAlloc)
 	m.PollCount++
 	m.RandomValue = gauge(rand.Float64())
 }
 
+// send metrics data to http server
 func (m *monitor) sendData() {
 
 	endpoint := "127.0.0.1"
@@ -117,29 +121,29 @@ func (m *monitor) sendData() {
 	}
 
 	for _, url := range urlList {
-		//_, err := http.Post(url, "text/plain", nil)
-		//if err != nil {
-		//	// handle error
-		//}
-
 		fmt.Printf("Sending data to %s\n", url)
+		//send metric data
+		_, err := http.Post(url, "text/plain", nil)
+		if err != nil {
+			fmt.Printf("Error sending request: %s\n", err)
+		}
 	}
-
+	// reset the counter
 	m.PollCount = 0
 }
 
 func newMonitor(pollInterval, reportInterval int) {
 	var m monitor
-
 	pollIntervalTicker := time.NewTicker(time.Duration(pollInterval) * time.Second)
 	reportIntervalTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
+
+	// infinite loop for polling counters and sending it to server
 	for {
 		select {
 		case <-pollIntervalTicker.C:
-
 			m.updateMonitor()
+			fmt.Print("Got counters: ")
 			fmt.Println(m)
-
 		case <-reportIntervalTicker.C:
 			m.sendData()
 		}
