@@ -123,9 +123,16 @@ func (m *monitor) sendData() {
 	for _, url := range urlList {
 		fmt.Printf("Sending data to %s\n", url)
 		//send metric data
-		_, err := http.Post(url, "text/plain", nil)
+		resp, err := http.Post(url, "text/plain", nil)
 		if err != nil {
 			fmt.Printf("Error sending request: %s\n", err)
+			return
+		}
+		fmt.Printf("The status code we got is: %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
+		err2 := resp.Body.Close()
+		if err2 != nil {
+			fmt.Printf("Error closing body: %s\n", err)
+			return
 		}
 	}
 	// reset the counter
