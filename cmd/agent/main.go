@@ -158,5 +158,5 @@ func newMonitor(pollInterval, reportInterval int) {
 }
 
 func main() {
-	newMonitor(2, 10)
+	newMonitor(2, 2)
 }

@@ -1,10 +1,20 @@
 package storage
 
-import "github.com/artems723/monik/config"
+import "fmt"
 
-type Storage struct {
+type Repository interface {
+	Write(key, value string)
+}
+type MemStorage struct {
+	storage map[string]string
 }
 
-func New(config config.Config) Storage {
-	return Storage{}
+func (m *MemStorage) Write(key, value string) {
+	m.storage[key] = value
+	fmt.Println(m.storage)
+}
+
+func NewMemStorage() *MemStorage {
+	storage := make(map[string]string)
+	return &MemStorage{storage: storage}
 }

@@ -1,22 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/artems723/monik/internal/server"
+	"github.com/artems723/monik/internal/server/handler"
+	"github.com/artems723/monik/internal/server/storage"
 	"log"
-	"net/http"
 )
-
-func updateHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Got request. Method=%s. Path=%s\n", r.Method, r.URL.Path)
-	if r.Method != http.MethodPost {
-		http.Error(w, "Only POST requests are allowed!", http.StatusMethodNotAllowed)
-		return
-	}
-	path := r.URL.Path
-	fmt.Printf("%s\n", path)
-}
 
 func main() {
 	//Configuration
@@ -24,19 +13,16 @@ func main() {
 	//Storage
 	//repo := storage.New(cfg.Server)
 
-	// Create new chi router
-	r := chi.NewRouter()
+	// Create storage
+	repo := storage.NewMemStorage()
+	// Create handler
+	h := handler.New(repo)
 
-	// Using built-in middleware
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	r.Route("/update/{metricName}/{metricValue}", func(r chi.Router) {
-		r.Post("/", updateHandler)
-	})
-
-	//http.HandleFunc("/update/", uploadHandler)
-	log.Fatal(http.ListenAndServe(":8080", r))
+	// Create server
+	srv := server.New()
+	// Start http server
+	err := srv.Run("8080", h.InitRoutes())
+	if err != nil {
+		log.Fatalf("error occured while running http server: %s", err.Error())
+	}
 }
