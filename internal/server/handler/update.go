@@ -11,5 +11,5 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
 	fmt.Printf("Got request. Method=%s Path: %s metricType: %s metricName: %s metricValue: %s\n", r.Method, r.URL.Path, metricType, metricName, metricValue)
-	h.s.Write(metricName, metricValue)
+	h.s.Write(metricType, metricName, metricValue)
 }
