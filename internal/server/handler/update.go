@@ -51,6 +51,11 @@ func (h *Handler) updateCounterMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) notImplemented(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Returning 501")
+	fmt.Println("Returning notImplemented")
 	http.Error(w, http.StatusText(501), 501)
+}
+
+func (h *Handler) notFound(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Returning notFound")
+	http.Error(w, http.StatusText(404), 404)
 }

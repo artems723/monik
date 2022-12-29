@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"math/rand"
-	"net/http"
 	"runtime"
 )
 
@@ -72,22 +71,20 @@ func (agent *Agent) SendData(endpoint string, port int, client HttpClient) {
 		urlString := fmt.Sprintf("http://%s:%d/update/gauge/%s/%f", endpoint, port, key, val)
 
 		fmt.Printf("Sending data to %s\n", urlString)
-		resp, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
+		_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
 		if err != nil {
 			fmt.Printf("Error sending request: %s\n", err)
 			return
 		}
-		fmt.Printf("The status code we got is: %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode()))
 	}
 
 	// send counter
 	urlString := fmt.Sprintf("http://%s:%d/update/counter/PollCount/%d", endpoint, port, agent.pollCount)
-	resp, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
+	_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
 	if err != nil {
 		fmt.Printf("Error sending request: %s\n", err)
 		return
 	}
-	fmt.Printf("The status code we got is: %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode()))
 
 	// reset the counter
 	agent.pollCount = 0
