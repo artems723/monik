@@ -1,6 +1,6 @@
 package storage
 
 type Repository interface {
-	Get(string) (string, bool)
-	Write(string, string)
+	GetMetric(agentID, metricName string) (string, bool)
+	WriteMetric(agentID, metricName, metricValue string)
 }

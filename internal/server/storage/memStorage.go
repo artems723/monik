@@ -5,20 +5,28 @@ import (
 )
 
 type MemStorage struct {
-	storage map[string]string
+	storage map[string]map[string]string
 }
 
 func NewMemStorage() *MemStorage {
-	storage := make(map[string]string)
+	storage := make(map[string]map[string]string)
 	return &MemStorage{storage: storage}
 }
 
-func (m *MemStorage) Get(metricName string) (string, bool) {
-	currentVal, ok := m.storage[metricName]
+func (m *MemStorage) GetMetric(agentID, metricName string) (string, bool) {
+	currentVal, ok := m.storage[agentID][metricName]
 	return currentVal, ok
 }
 
-func (m *MemStorage) Write(metricName, metricValue string) {
-	m.storage[metricName] = metricValue
+func (m *MemStorage) WriteMetric(agentID, metricName, metricValue string) {
+	// check if agent exists in storage
+	_, ok := m.storage[agentID]
+	if !ok {
+		// create map for agent
+		agentStorage := make(map[string]string)
+		m.storage[agentID] = agentStorage
+	}
+	// add metric to storage
+	m.storage[agentID][metricName] = metricValue
 	fmt.Println(m.storage)
 }
