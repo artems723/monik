@@ -65,7 +65,7 @@ func (agent *Agent) UpdateMetrics() {
 }
 
 // send metrics data to http server
-func (agent *Agent) SendData(endpoint string, port int, client Client) {
+func (agent *Agent) SendData(endpoint string, port int, client HttpClient) {
 
 	// send gauges
 	for key, val := range agent.gaugeMetrics {

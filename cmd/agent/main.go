@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func newMonitor(pollInterval, reportInterval int, endpoint string, port int, cl client.Client, agent client.Agent) {
+func newMonitor(pollInterval, reportInterval int, endpoint string, port int, cl client.HttpClient, agent client.Agent) {
 	pollIntervalTicker := time.NewTicker(time.Duration(pollInterval) * time.Second)
 	reportIntervalTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
 
@@ -26,7 +26,7 @@ func newMonitor(pollInterval, reportInterval int, endpoint string, port int, cl 
 func main() {
 	endpoint := "127.0.0.1"
 	port := 8080
-	cl := client.New()
+	cl := client.NewHttpClient()
 	agent := client.NewAgent()
 	newMonitor(2, 2, endpoint, port, cl, agent)
 }
