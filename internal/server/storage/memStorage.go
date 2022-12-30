@@ -29,3 +29,8 @@ func (m *MemStorage) WriteMetric(agentID, metricName, metricValue string) {
 	m.storage[agentID][metricName] = metricValue
 	fmt.Println(m.storage)
 }
+
+func (m *MemStorage) GetAllMetrics(agentID string) (map[string]string, bool) {
+	allMetrics, ok := m.storage[agentID]
+	return allMetrics, ok
+}

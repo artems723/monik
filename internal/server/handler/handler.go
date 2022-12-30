@@ -39,5 +39,9 @@ func (h *Handler) InitRoutes() *chi.Mux {
 		r.Get("/gauge/{metricName}", h.getValue)
 		r.Get("/counter/{metricName}", h.getValue)
 	})
+
+	r.Route("/", func(r chi.Router) {
+		r.Get("/", h.mainPage)
+	})
 	return r
 }
