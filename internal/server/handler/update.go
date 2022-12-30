@@ -17,7 +17,7 @@ func (h *Handler) updateGaugeMetric(w http.ResponseWriter, r *http.Request) {
 	_, err := strconv.ParseFloat(metricValue, 32)
 	if err != nil {
 		fmt.Printf("%s. Wrong value (not float64). Got: %s\n", err, metricValue)
-		http.Error(w, http.StatusText(400), 400)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 	h.s.WriteMetric(agentID, metricName, metricValue)
@@ -33,7 +33,7 @@ func (h *Handler) updateCounterMetric(w http.ResponseWriter, r *http.Request) {
 	val, err := strconv.ParseInt(metricValue, 10, 64)
 	if err != nil {
 		fmt.Printf("%s. Wrong value (not int64). Got: %s\n", err, metricValue)
-		http.Error(w, http.StatusText(400), 400)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 	var currentVal int64
@@ -53,5 +53,5 @@ func (h *Handler) updateCounterMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) notImplemented(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, http.StatusText(501), http.StatusNotImplemented)
+	http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
 }

@@ -42,6 +42,7 @@ func TestHandler_notImplemented(t *testing.T) {
 			}
 			h.notImplemented(tt.args.w, tt.args.r)
 			response := tt.args.w.(*httptest.ResponseRecorder).Result()
+			defer response.Body.Close()
 			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))
 			assert.Equal(t, tt.want.statusCode, response.StatusCode)
 		})
@@ -99,6 +100,7 @@ func TestHandler_updateCounterMetric(t *testing.T) {
 
 			h.updateCounterMetric(tt.args.w, tt.args.r)
 			response := tt.args.w.(*httptest.ResponseRecorder).Result()
+			defer response.Body.Close()
 			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))
 			assert.Equal(t, tt.want.statusCode, response.StatusCode)
 		})
@@ -156,6 +158,7 @@ func TestHandler_updateGaugeMetric(t *testing.T) {
 
 			h.updateGaugeMetric(tt.args.w, tt.args.r)
 			response := tt.args.w.(*httptest.ResponseRecorder).Result()
+			defer response.Body.Close()
 			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))
 			assert.Equal(t, tt.want.statusCode, response.StatusCode)
 		})

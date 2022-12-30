@@ -2,11 +2,11 @@ package client
 
 import "github.com/go-resty/resty/v2"
 
-type HttpClient struct {
+type HTTPClient struct {
 	client *resty.Client
 }
 
-func NewHttpClient() HttpClient {
+func NewHTTPClient() HTTPClient {
 	client := resty.New()
-	return HttpClient{client: client}
+	return HTTPClient{client: client}
 }

@@ -15,7 +15,7 @@ func TestAgent_SendData(t *testing.T) {
 	}
 	type args struct {
 		URL    string
-		client HttpClient
+		client HTTPClient
 	}
 	tests := []struct {
 		name   string
@@ -25,7 +25,7 @@ func TestAgent_SendData(t *testing.T) {
 		{
 			name:   "test send",
 			fields: fields{gaugeMetrics: make(map[string]gauge), pollCount: 2},
-			args:   args{URL: "", client: NewHttpClient()},
+			args:   args{URL: "", client: NewHTTPClient()},
 		},
 	}
 	for _, tt := range tests {

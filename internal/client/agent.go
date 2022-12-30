@@ -62,7 +62,7 @@ func (agent *Agent) UpdateMetrics() {
 }
 
 // send metrics data to http server
-func (agent *Agent) SendData(URL string, client HttpClient) error {
+func (agent *Agent) SendData(URL string, client HTTPClient) error {
 
 	// send gauges
 	for key, val := range agent.gaugeMetrics {
