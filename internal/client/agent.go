@@ -62,7 +62,7 @@ func (agent *Agent) UpdateMetrics() {
 }
 
 // send metrics data to http server
-func (agent *Agent) SendData(URL string, client HTTPClient) error {
+func (agent *Agent) SendData(URL string, client HTTPClient) {
 
 	// send gauges
 	for key, val := range agent.gaugeMetrics {
@@ -72,7 +72,7 @@ func (agent *Agent) SendData(URL string, client HTTPClient) error {
 		_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
 		if err != nil {
 			fmt.Printf("Error sending request: %s\n", err)
-			return err
+			return
 		}
 	}
 
@@ -81,10 +81,9 @@ func (agent *Agent) SendData(URL string, client HTTPClient) error {
 	_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
 	if err != nil {
 		fmt.Printf("Error sending request: %s\n", err)
-		return err
+		return
 	}
 
 	// reset the counter
 	agent.pollCount = 0
-	return err
 }

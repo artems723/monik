@@ -33,5 +33,11 @@ func (h *Handler) InitRoutes() *chi.Mux {
 		r.Post("/counter/", http.NotFound)
 		r.Post("/*", h.notImplemented)
 	})
+
+	// Route /value path
+	r.Route("/value", func(r chi.Router) {
+		r.Get("/gauge/{metricName}", h.getValue)
+		r.Get("/counter/{metricName}", h.getValue)
+	})
 	return r
 }
