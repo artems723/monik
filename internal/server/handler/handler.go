@@ -4,6 +4,7 @@ import (
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"net/http"
 )
 
 type Handler struct {
@@ -28,8 +29,8 @@ func (h *Handler) InitRoutes() *chi.Mux {
 	r.Route("/update", func(r chi.Router) {
 		r.Post("/gauge/{metricName}/{metricValue}", h.updateGaugeMetric)
 		r.Post("/counter/{metricName}/{metricValue}", h.updateCounterMetric)
-		r.Post("/gauge/", h.notFound)
-		r.Post("/counter/", h.notFound)
+		r.Post("/gauge/", http.NotFound)
+		r.Post("/counter/", http.NotFound)
 		r.Post("/*", h.notImplemented)
 	})
 	return r

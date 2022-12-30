@@ -21,6 +21,7 @@ func (h *Handler) updateGaugeMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.s.WriteMetric(agentID, metricName, metricValue)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) updateCounterMetric(w http.ResponseWriter, r *http.Request) {
@@ -48,14 +49,9 @@ func (h *Handler) updateCounterMetric(w http.ResponseWriter, r *http.Request) {
 	newVal := val + currentVal
 	// Write new value to storage
 	h.s.WriteMetric(agentID, metricName, fmt.Sprintf("%v", newVal))
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) notImplemented(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Returning notImplemented")
-	http.Error(w, http.StatusText(501), 501)
-}
-
-func (h *Handler) notFound(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Returning notFound")
-	http.Error(w, http.StatusText(404), 404)
+	http.Error(w, http.StatusText(501), http.StatusNotImplemented)
 }
