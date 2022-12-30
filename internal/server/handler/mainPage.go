@@ -17,7 +17,7 @@ func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 		for key, value := range allMetrics {
 			fmt.Fprintf(b, "%s=\"%s\"\n", key, value)
 		}
-		w.Write([]byte(b.String()))
+		w.Write(b.Bytes())
 		w.WriteHeader(http.StatusOK)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
