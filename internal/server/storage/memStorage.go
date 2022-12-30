@@ -23,8 +23,7 @@ func (m *MemStorage) WriteMetric(agentID, metricName, metricValue string) {
 	_, ok := m.storage[agentID]
 	if !ok {
 		// create map for agent
-		agentStorage := make(map[string]string)
-		m.storage[agentID] = agentStorage
+		m.storage[agentID] = make(map[string]string)
 	}
 	// add metric to storage
 	m.storage[agentID][metricName] = metricValue

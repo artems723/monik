@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"math/rand"
 	"runtime"
 )
@@ -20,9 +19,8 @@ type (
 )
 
 func NewAgent() Agent {
-	id := uuid.New().String()
 	metricsMap := make(map[string]gauge)
-	return Agent{id: id, gaugeMetrics: metricsMap, pollCount: 0}
+	return Agent{gaugeMetrics: metricsMap, pollCount: 0}
 }
 
 func (agent *Agent) UpdateMetrics() {
@@ -64,28 +62,29 @@ func (agent *Agent) UpdateMetrics() {
 }
 
 // send metrics data to http server
-func (agent *Agent) SendData(endpoint string, port int, client HttpClient) {
+func (agent *Agent) SendData(URL string, client HttpClient) error {
 
 	// send gauges
 	for key, val := range agent.gaugeMetrics {
-		urlString := fmt.Sprintf("http://%s:%d/update/gauge/%s/%f", endpoint, port, key, val)
+		urlString := fmt.Sprintf("%s/update/gauge/%s/%f", URL, key, val)
 
 		fmt.Printf("Sending data to %s\n", urlString)
 		_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
 		if err != nil {
 			fmt.Printf("Error sending request: %s\n", err)
-			return
+			return err
 		}
 	}
 
 	// send counter
-	urlString := fmt.Sprintf("http://%s:%d/update/counter/PollCount/%d", endpoint, port, agent.pollCount)
+	urlString := fmt.Sprintf("%s/update/counter/PollCount/%d", URL, agent.pollCount)
 	_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
 	if err != nil {
 		fmt.Printf("Error sending request: %s\n", err)
-		return
+		return err
 	}
 
 	// reset the counter
 	agent.pollCount = 0
+	return err
 }

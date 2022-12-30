@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func newMonitor(pollInterval, reportInterval int, endpoint string, port int, cl client.HttpClient, agent client.Agent) {
+func newMonitor(pollInterval, reportInterval int, URL string, cl client.HttpClient, agent client.Agent) {
 	pollIntervalTicker := time.NewTicker(time.Duration(pollInterval) * time.Second)
 	reportIntervalTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
 
@@ -18,15 +18,16 @@ func newMonitor(pollInterval, reportInterval int, endpoint string, port int, cl 
 			fmt.Print("Got counters: ")
 			fmt.Println(agent)
 		case <-reportIntervalTicker.C:
-			agent.SendData(endpoint, port, cl)
+			agent.SendData(URL, cl)
 		}
 	}
 }
 
 func main() {
 	endpoint := "127.0.0.1"
-	port := 8080
+	port := "8080"
+	URL := "http://" + endpoint + ":" + port
 	cl := client.NewHttpClient()
 	agent := client.NewAgent()
-	newMonitor(2, 2, endpoint, port, cl, agent)
+	newMonitor(2, 10, URL, cl, agent)
 }
