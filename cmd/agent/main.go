@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-func newMonitor(pollInterval, reportInterval int, URL string, cl client.HTTPClient, agent client.Agent) {
-	pollIntervalTicker := time.NewTicker(time.Duration(pollInterval) * time.Second)
-	reportIntervalTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
+func newMonitor(pollInterval, reportInterval time.Duration, URL string, cl client.HTTPClient, agent client.Agent) {
+	pollIntervalTicker := time.NewTicker(pollInterval)
+	reportIntervalTicker := time.NewTicker(reportInterval)
 
 	// infinite loop for polling counters and sending it to server
 	for {
@@ -29,5 +29,5 @@ func main() {
 	URL := "http://" + endpoint + ":" + port
 	cl := client.NewHTTPClient()
 	agent := client.NewAgent()
-	newMonitor(2, 10, URL, cl, agent)
+	newMonitor(2*time.Second, 10*time.Second, URL, cl, agent)
 }
