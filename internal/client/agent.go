@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"runtime"
 )
@@ -68,10 +69,10 @@ func (agent *Agent) SendData(URL string, client HTTPClient) {
 	for key, val := range agent.gaugeMetrics {
 		urlString := fmt.Sprintf("%s/update/gauge/%s/%f", URL, key, val)
 
-		fmt.Printf("Sending data to %s\n", urlString)
+		log.Printf("Sending data to %s\n", urlString)
 		_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
 		if err != nil {
-			fmt.Printf("Error sending request: %s\n", err)
+			log.Printf("Error sending request: %s\n", err)
 			return
 		}
 	}
@@ -80,7 +81,7 @@ func (agent *Agent) SendData(URL string, client HTTPClient) {
 	urlString := fmt.Sprintf("%s/update/counter/PollCount/%d", URL, agent.pollCount)
 	_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
 	if err != nil {
-		fmt.Printf("Error sending request: %s\n", err)
+		log.Printf("Error sending request: %s\n", err)
 		return
 	}
 

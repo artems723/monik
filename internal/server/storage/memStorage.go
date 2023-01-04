@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"fmt"
+	"log"
 )
 
 type MemStorage struct {
@@ -27,7 +27,7 @@ func (m *MemStorage) WriteMetric(agentID, metricName, metricValue string) {
 	}
 	// add metric to storage
 	m.storage[agentID][metricName] = metricValue
-	fmt.Println(m.storage)
+	log.Printf("Storage was updated. New storage: %#v", m.storage)
 }
 
 func (m *MemStorage) GetAllMetrics(agentID string) (map[string]string, bool) {

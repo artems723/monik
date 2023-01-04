@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/go-chi/chi/v5"
+	"log"
 	"net"
 	"net/http"
 )
@@ -10,7 +10,7 @@ import (
 func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
 	metricName := chi.URLParam(r, "metricName")
-	fmt.Printf("Got get counter request. Method=%s Path: %s metricName: %s \n", r.Method, r.URL.Path, metricName)
+	log.Printf("Got get counter request. Method=%s Path: %s metricName: %s \n", r.Method, r.URL.Path, metricName)
 
 	val, ok := h.s.GetMetric(agentID, metricName)
 	if ok {

@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"log"
 	"net"
 	"net/http"
 	"strconv"
@@ -12,11 +13,11 @@ func (h *Handler) updateGaugeMetric(w http.ResponseWriter, r *http.Request) {
 	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
-	fmt.Printf("Got gauge request. Method=%s Path: %s metricName: %s metricValue: %s\n", r.Method, r.URL.Path, metricName, metricValue)
+	log.Printf("Got gauge request. Method=%s Path: %s metricName: %s metricValue: %s\n", r.Method, r.URL.Path, metricName, metricValue)
 	// Try to convert string to float64
 	_, err := strconv.ParseFloat(metricValue, 32)
 	if err != nil {
-		fmt.Printf("%s. Wrong value (not float64). Got: %s\n", err, metricValue)
+		log.Printf("%s. Wrong value (not float64). Got: %s\n", err, metricValue)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -28,11 +29,11 @@ func (h *Handler) updateCounterMetric(w http.ResponseWriter, r *http.Request) {
 	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
-	fmt.Printf("Got counter request. Method=%s Path: %s metricName: %s metricValue: %s\n", r.Method, r.URL.Path, metricName, metricValue)
+	log.Printf("Got counter request. Method=%s Path: %s metricName: %s metricValue: %s\n", r.Method, r.URL.Path, metricName, metricValue)
 	// Convert string to int64
 	val, err := strconv.ParseInt(metricValue, 10, 64)
 	if err != nil {
-		fmt.Printf("%s. Wrong value (not int64). Got: %s\n", err, metricValue)
+		log.Printf("%s. Wrong value (not int64). Got: %s\n", err, metricValue)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}

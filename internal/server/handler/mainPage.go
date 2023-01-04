@@ -3,13 +3,14 @@ package handler
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 )
 
 func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
-	fmt.Printf("Got main page request. Method=%s Path: %s agentID: %s \n", r.Method, r.URL.Path, agentID)
+	log.Printf("Got main page request. Method=%s Path: %s agentID: %s \n", r.Method, r.URL.Path, agentID)
 
 	allMetrics, ok := h.s.GetAllMetrics(agentID)
 	if ok {

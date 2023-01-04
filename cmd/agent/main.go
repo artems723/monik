@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/artems723/monik/internal/client"
+	"log"
 	"time"
 )
 
@@ -15,8 +15,7 @@ func newMonitor(pollInterval, reportInterval time.Duration, URL string, cl clien
 		select {
 		case <-pollIntervalTicker.C:
 			agent.UpdateMetrics()
-			fmt.Print("Got counters: ")
-			fmt.Println(agent)
+			log.Printf("Got counters: %#v", agent)
 		case <-reportIntervalTicker.C:
 			agent.SendData(URL, cl)
 		}
