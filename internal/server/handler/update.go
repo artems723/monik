@@ -56,8 +56,11 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		*metric.Delta += val
 		// Write new value to storage
 		err = h.s.WriteMetric(agentID, metric)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
-
 	default:
 		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
 		return
