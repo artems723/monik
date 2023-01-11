@@ -9,18 +9,18 @@ import (
 
 // metric types
 type (
-	gauge   float64
-	counter int64
+	metricTypeGauge   float64
+	metricTypeCounter int64
 
 	Agent struct {
 		id           string
-		gaugeMetrics map[string]gauge
-		pollCount    counter
+		gaugeMetrics map[string]metricTypeGauge
+		pollCount    metricTypeCounter
 	}
 )
 
 func NewAgent() Agent {
-	metricsMap := make(map[string]gauge)
+	metricsMap := make(map[string]metricTypeGauge)
 	return Agent{gaugeMetrics: metricsMap, pollCount: 0}
 }
 
@@ -31,35 +31,35 @@ func (agent *Agent) UpdateMetrics() {
 	runtime.ReadMemStats(&rtm)
 
 	//Update metrics
-	agent.gaugeMetrics["Alloc"] = gauge(rtm.Alloc)
-	agent.gaugeMetrics["BuckHashSys"] = gauge(rtm.BuckHashSys)
-	agent.gaugeMetrics["Frees"] = gauge(rtm.Frees)
-	agent.gaugeMetrics["GCCPUFraction"] = gauge(rtm.GCCPUFraction)
-	agent.gaugeMetrics["GCSys"] = gauge(rtm.GCSys)
-	agent.gaugeMetrics["HeapAlloc"] = gauge(rtm.HeapAlloc)
-	agent.gaugeMetrics["HeapIdle"] = gauge(rtm.HeapIdle)
-	agent.gaugeMetrics["HeapInuse"] = gauge(rtm.HeapInuse)
-	agent.gaugeMetrics["HeapObjects"] = gauge(rtm.HeapObjects)
-	agent.gaugeMetrics["HeapReleased"] = gauge(rtm.HeapReleased)
-	agent.gaugeMetrics["HeapSys"] = gauge(rtm.HeapSys)
-	agent.gaugeMetrics["LastGC"] = gauge(rtm.LastGC)
-	agent.gaugeMetrics["Lookups"] = gauge(rtm.Lookups)
-	agent.gaugeMetrics["MCacheInuse"] = gauge(rtm.MCacheInuse)
-	agent.gaugeMetrics["MCacheSys"] = gauge(rtm.MCacheSys)
-	agent.gaugeMetrics["MSpanInuse"] = gauge(rtm.MSpanInuse)
-	agent.gaugeMetrics["MSpanSys"] = gauge(rtm.MSpanSys)
-	agent.gaugeMetrics["Mallocs"] = gauge(rtm.Mallocs)
-	agent.gaugeMetrics["NextGC"] = gauge(rtm.NextGC)
-	agent.gaugeMetrics["NumForcedGC"] = gauge(rtm.NumForcedGC)
-	agent.gaugeMetrics["NumGC"] = gauge(rtm.NumGC)
-	agent.gaugeMetrics["OtherSys"] = gauge(rtm.OtherSys)
-	agent.gaugeMetrics["PauseTotalNs"] = gauge(rtm.PauseTotalNs)
-	agent.gaugeMetrics["StackInuse"] = gauge(rtm.StackInuse)
-	agent.gaugeMetrics["StackSys"] = gauge(rtm.StackSys)
-	agent.gaugeMetrics["Sys"] = gauge(rtm.Sys)
-	agent.gaugeMetrics["TotalAlloc"] = gauge(rtm.TotalAlloc)
+	agent.gaugeMetrics["Alloc"] = metricTypeGauge(rtm.Alloc)
+	agent.gaugeMetrics["BuckHashSys"] = metricTypeGauge(rtm.BuckHashSys)
+	agent.gaugeMetrics["Frees"] = metricTypeGauge(rtm.Frees)
+	agent.gaugeMetrics["GCCPUFraction"] = metricTypeGauge(rtm.GCCPUFraction)
+	agent.gaugeMetrics["GCSys"] = metricTypeGauge(rtm.GCSys)
+	agent.gaugeMetrics["HeapAlloc"] = metricTypeGauge(rtm.HeapAlloc)
+	agent.gaugeMetrics["HeapIdle"] = metricTypeGauge(rtm.HeapIdle)
+	agent.gaugeMetrics["HeapInuse"] = metricTypeGauge(rtm.HeapInuse)
+	agent.gaugeMetrics["HeapObjects"] = metricTypeGauge(rtm.HeapObjects)
+	agent.gaugeMetrics["HeapReleased"] = metricTypeGauge(rtm.HeapReleased)
+	agent.gaugeMetrics["HeapSys"] = metricTypeGauge(rtm.HeapSys)
+	agent.gaugeMetrics["LastGC"] = metricTypeGauge(rtm.LastGC)
+	agent.gaugeMetrics["Lookups"] = metricTypeGauge(rtm.Lookups)
+	agent.gaugeMetrics["MCacheInuse"] = metricTypeGauge(rtm.MCacheInuse)
+	agent.gaugeMetrics["MCacheSys"] = metricTypeGauge(rtm.MCacheSys)
+	agent.gaugeMetrics["MSpanInuse"] = metricTypeGauge(rtm.MSpanInuse)
+	agent.gaugeMetrics["MSpanSys"] = metricTypeGauge(rtm.MSpanSys)
+	agent.gaugeMetrics["Mallocs"] = metricTypeGauge(rtm.Mallocs)
+	agent.gaugeMetrics["NextGC"] = metricTypeGauge(rtm.NextGC)
+	agent.gaugeMetrics["NumForcedGC"] = metricTypeGauge(rtm.NumForcedGC)
+	agent.gaugeMetrics["NumGC"] = metricTypeGauge(rtm.NumGC)
+	agent.gaugeMetrics["OtherSys"] = metricTypeGauge(rtm.OtherSys)
+	agent.gaugeMetrics["PauseTotalNs"] = metricTypeGauge(rtm.PauseTotalNs)
+	agent.gaugeMetrics["StackInuse"] = metricTypeGauge(rtm.StackInuse)
+	agent.gaugeMetrics["StackSys"] = metricTypeGauge(rtm.StackSys)
+	agent.gaugeMetrics["Sys"] = metricTypeGauge(rtm.Sys)
+	agent.gaugeMetrics["TotalAlloc"] = metricTypeGauge(rtm.TotalAlloc)
 	agent.pollCount++
-	agent.gaugeMetrics["RandomValue"] = gauge(rand.Float64())
+	agent.gaugeMetrics["RandomValue"] = metricTypeGauge(rand.Float64())
 }
 
 // send metrics data to http server
