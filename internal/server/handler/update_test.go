@@ -10,45 +10,6 @@ import (
 	"testing"
 )
 
-func TestHandler_notImplemented(t *testing.T) {
-	type fields struct {
-		s storage.Repository
-	}
-	type want struct {
-		contentType string
-		statusCode  int
-	}
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   want
-	}{
-		{
-			name:   "test 501 code and content type",
-			fields: fields{storage.NewMemStorage()},
-			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/unknown", nil)},
-			want:   want{"text/plain; charset=utf-8", 501},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := &Handler{
-				s: tt.fields.s,
-			}
-			h.notImplemented(tt.args.w, tt.args.r)
-			response := tt.args.w.(*httptest.ResponseRecorder).Result()
-			defer response.Body.Close()
-			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))
-			assert.Equal(t, tt.want.statusCode, response.StatusCode)
-		})
-	}
-}
-
 func TestHandler_updateMetric(t *testing.T) {
 	type fields struct {
 		s storage.Repository

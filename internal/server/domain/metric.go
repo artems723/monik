@@ -30,6 +30,7 @@ func NewCounterMetric(id string, delta int64) Metrics {
 
 func (m Metrics) String() string {
 	var s string
+	// check metric type
 	switch m.MType {
 	case MetricTypeGauge:
 		s = fmt.Sprintf("ID: %s, Mtype: %s, Value: %f", m.ID, m.MType, *m.Value)
