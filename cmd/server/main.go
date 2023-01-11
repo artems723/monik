@@ -8,16 +8,10 @@ import (
 )
 
 func main() {
-	//Configuration
-	//cfg := config.New()
-	//Storage
-	//repo := storage.New(cfg.Server)
-
 	// Create storage
 	repo := storage.NewMemStorage()
 	// Create handler
 	h := handler.New(repo)
-
 	// Create server
 	srv := server.New()
 	// Start http server
