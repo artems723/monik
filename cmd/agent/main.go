@@ -23,8 +23,12 @@ func newMonitor(pollInterval, reportInterval time.Duration, URL string, cl clien
 }
 
 func main() {
+
+	const PollInterval = time.Second * 2
+	const ReportInterval = time.Second * 10
+
 	serverAddr := "http://localhost:8080"
 	cl := client.NewHTTPClient()
 	agent := client.NewAgent()
-	newMonitor(2*time.Second, 10*time.Second, serverAddr, cl, agent)
+	newMonitor(PollInterval, ReportInterval, serverAddr, cl, agent)
 }
