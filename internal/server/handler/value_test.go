@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -14,8 +15,10 @@ import (
 
 func TestHandler_getValue(t *testing.T) {
 	type fields struct {
-		s  storage.Repository
-		id string
+		s          storage.Repository
+		id         string
+		valGauge   float64
+		valCounter int64
 	}
 	type want struct {
 		contentType string
@@ -23,6 +26,7 @@ func TestHandler_getValue(t *testing.T) {
 		metricValue string
 	}
 	type urlParams struct {
+		metricType string
 		metricName string
 	}
 	type args struct {
@@ -38,17 +42,17 @@ func TestHandler_getValue(t *testing.T) {
 	}{
 		{
 			name:      "test get value",
-			fields:    fields{s: storage.NewMemStorage()},
-			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/gauge/{metricName}", nil)},
-			want:      want{"text/plain; charset=utf-8", 200, "20"},
-			urlParams: urlParams{"Alloc"},
+			fields:    fields{s: storage.NewMemStorage(), valGauge: 20.201},
+			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
+			want:      want{"text/plain; charset=utf-8", 200, "20.201"},
+			urlParams: urlParams{"gauge", "Alloc"},
 		},
 		{
 			name:      "test get value",
-			fields:    fields{s: storage.NewMemStorage()},
-			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/counter/{metricName}", nil)},
+			fields:    fields{s: storage.NewMemStorage(), valCounter: 20},
+			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
 			want:      want{"text/plain; charset=utf-8", 200, "20"},
-			urlParams: urlParams{"PollCount"},
+			urlParams: urlParams{"counter", "PollCount"},
 		},
 	}
 	for _, tt := range tests {
@@ -62,7 +66,15 @@ func TestHandler_getValue(t *testing.T) {
 			tt.args.r = tt.args.r.WithContext(context.WithValue(tt.args.r.Context(), chi.RouteCtxKey, rctx))
 
 			// add metric to storage
-			tt.fields.s.WriteMetric(tt.fields.id, tt.urlParams.metricName, tt.want.metricValue)
+			var metric domain.Metrics
+			switch domain.MetricType(tt.urlParams.metricType) {
+			case domain.MetricTypeGauge:
+				metric = domain.NewGaugeMetric(tt.urlParams.metricName, tt.fields.valGauge)
+			case domain.MetricTypeCounter:
+				metric = domain.NewCounterMetric(tt.urlParams.metricName, tt.fields.valCounter)
+			}
+
+			tt.fields.s.WriteMetric(tt.fields.id, metric)
 
 			// change remote address
 			tt.args.r.RemoteAddr = tt.fields.id

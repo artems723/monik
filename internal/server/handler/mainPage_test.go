@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -20,7 +21,7 @@ func TestHandler_mainPage(t *testing.T) {
 		statusCode  int
 		text        string
 		metricName  string
-		metricValue string
+		metricValue float64
 	}
 	type args struct {
 		w http.ResponseWriter
@@ -36,7 +37,7 @@ func TestHandler_mainPage(t *testing.T) {
 			name:   "test get value",
 			fields: fields{s: storage.NewMemStorage()},
 			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
-			want:   want{"text/plain; charset=utf-8", 200, "Alloc=\"20\"\n", "Alloc", "20"},
+			want:   want{"text/plain; charset=utf-8", 200, "Alloc=\"ID: Alloc, Mtype: gauge, Value: 20.200000\"\n", "Alloc", 20.20},
 		},
 	}
 	for _, tt := range tests {
@@ -46,7 +47,8 @@ func TestHandler_mainPage(t *testing.T) {
 			}
 
 			// add metric to storage
-			tt.fields.s.WriteMetric(tt.fields.id, tt.want.metricName, tt.want.metricValue)
+			metric := domain.NewGaugeMetric(tt.want.metricName, tt.want.metricValue)
+			tt.fields.s.WriteMetric(tt.fields.id, metric)
 
 			// change remote address
 			tt.args.r.RemoteAddr = tt.fields.id

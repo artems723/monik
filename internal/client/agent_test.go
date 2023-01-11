@@ -10,8 +10,8 @@ import (
 
 func TestAgent_SendData(t *testing.T) {
 	type fields struct {
-		gaugeMetrics map[string]gauge
-		pollCount    counter
+		gaugeMetrics map[string]metricTypeGauge
+		pollCount    metricTypeCounter
 	}
 	type args struct {
 		URL    string
@@ -24,7 +24,7 @@ func TestAgent_SendData(t *testing.T) {
 	}{
 		{
 			name:   "test send",
-			fields: fields{gaugeMetrics: make(map[string]gauge), pollCount: 2},
+			fields: fields{gaugeMetrics: make(map[string]metricTypeGauge), pollCount: 2},
 			args:   args{URL: "", client: NewHTTPClient()},
 		},
 	}
@@ -40,7 +40,7 @@ func TestAgent_SendData(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			agent.gaugeMetrics["NumGC"] = gauge(222)
+			agent.gaugeMetrics["NumGC"] = metricTypeGauge(222)
 			agent.SendData(server.URL, tt.args.client)
 		})
 	}
@@ -48,8 +48,8 @@ func TestAgent_SendData(t *testing.T) {
 
 func TestAgent_UpdateMetrics(t *testing.T) {
 	type fields struct {
-		gaugeMetrics map[string]gauge
-		pollCount    counter
+		gaugeMetrics map[string]metricTypeGauge
+		pollCount    metricTypeCounter
 	}
 	tests := []struct {
 		name   string
@@ -57,7 +57,7 @@ func TestAgent_UpdateMetrics(t *testing.T) {
 	}{
 		{
 			name:   "test update metrics",
-			fields: fields{gaugeMetrics: make(map[string]gauge), pollCount: 2},
+			fields: fields{gaugeMetrics: make(map[string]metricTypeGauge), pollCount: 2},
 		},
 	}
 	for _, tt := range tests {
@@ -81,7 +81,7 @@ func TestNewAgent(t *testing.T) {
 	}{
 		{
 			name: "test new agent",
-			want: Agent{gaugeMetrics: make(map[string]gauge), pollCount: 0},
+			want: Agent{gaugeMetrics: make(map[string]metricTypeGauge), pollCount: 0},
 		},
 	}
 	for _, tt := range tests {

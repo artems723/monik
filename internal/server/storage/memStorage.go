@@ -1,36 +1,44 @@
 package storage
 
 import (
+	"github.com/artems723/monik/internal/server/domain"
 	"log"
 )
 
 type MemStorage struct {
-	storage map[string]map[string]string
+	storage map[string]map[string]domain.Metrics
 }
 
 func NewMemStorage() *MemStorage {
-	storage := make(map[string]map[string]string)
+	storage := make(map[string]map[string]domain.Metrics)
 	return &MemStorage{storage: storage}
 }
 
-func (m *MemStorage) GetMetric(agentID, metricName string) (string, bool) {
+func (m *MemStorage) GetMetric(agentID, metricName string) (domain.Metrics, error) {
 	currentVal, ok := m.storage[agentID][metricName]
-	return currentVal, ok
+	if !ok {
+		return currentVal, ErrNotFound
+	}
+	return currentVal, nil
 }
 
-func (m *MemStorage) WriteMetric(agentID, metricName, metricValue string) {
+func (m *MemStorage) WriteMetric(agentID string, metric domain.Metrics) error {
 	// check if agent exists in storage
 	_, ok := m.storage[agentID]
 	if !ok {
 		// create map for agent
-		m.storage[agentID] = make(map[string]string)
+		m.storage[agentID] = make(map[string]domain.Metrics)
 	}
 	// add metric to storage
-	m.storage[agentID][metricName] = metricValue
-	log.Printf("Storage was updated. New storage: %#v", m.storage)
+	m.storage[agentID][metric.ID] = metric
+	log.Printf("Storage was updated. New storage for agent %s: %#v", agentID, m.storage[agentID])
+	return nil
 }
 
-func (m *MemStorage) GetAllMetrics(agentID string) (map[string]string, bool) {
+func (m *MemStorage) GetAllMetrics(agentID string) (map[string]domain.Metrics, error) {
 	allMetrics, ok := m.storage[agentID]
-	return allMetrics, ok
+	if !ok {
+		return allMetrics, ErrNotFound
+	}
+	return allMetrics, nil
 }

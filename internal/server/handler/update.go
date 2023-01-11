@@ -1,7 +1,9 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
+	"github.com/artems723/monik/internal/server/domain"
+	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
 	"log"
 	"net"
@@ -9,48 +11,57 @@ import (
 	"strconv"
 )
 
-func (h *Handler) updateGaugeMetric(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
+	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
-	log.Printf("Got gauge request. Method=%s Path: %s metricName: %s metricValue: %s\n", r.Method, r.URL.Path, metricName, metricValue)
-	// Try to convert string to float64
-	_, err := strconv.ParseFloat(metricValue, 32)
-	if err != nil {
-		log.Printf("%s. Wrong value (not float64). Got: %s\n", err, metricValue)
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
-	h.s.WriteMetric(agentID, metricName, metricValue)
-	w.WriteHeader(http.StatusOK)
-}
+	log.Printf("Got update request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s metricValue: %s\n", r.Method, r.URL.Path, agentID, metricType, metricName, metricValue)
 
-func (h *Handler) updateCounterMetric(w http.ResponseWriter, r *http.Request) {
-	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
-	metricName := chi.URLParam(r, "metricName")
-	metricValue := chi.URLParam(r, "metricValue")
-	log.Printf("Got counter request. Method=%s Path: %s metricName: %s metricValue: %s\n", r.Method, r.URL.Path, metricName, metricValue)
-	// Convert string to int64
-	val, err := strconv.ParseInt(metricValue, 10, 64)
-	if err != nil {
-		log.Printf("%s. Wrong value (not int64). Got: %s\n", err, metricValue)
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	switch domain.MetricType(metricType) {
+	case domain.MetricTypeGauge:
+		// Try to convert string to float64
+		val, err := strconv.ParseFloat(metricValue, 64)
+		if err != nil {
+			log.Printf("%s. Wrong value (not float64). Got: %s\n", err, metricValue)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		metric := domain.NewGaugeMetric(metricName, val)
+		err = h.s.WriteMetric(agentID, metric)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	case domain.MetricTypeCounter:
+		// Convert string to int64
+		val, err := strconv.ParseInt(metricValue, 10, 64)
+		if err != nil {
+			log.Printf("%s. Wrong value (not int64). Got: %s\n", err, metricValue)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		// Get current metric from storage
+		metric, err := h.s.GetMetric(agentID, metricName)
+		if err != nil && !errors.Is(err, storage.ErrNotFound) {
+			log.Printf("storage.GetMetric: %v", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		if errors.Is(err, storage.ErrNotFound) {
+			metric = domain.NewCounterMetric(metricName, int64(0))
+		}
+		// Sum counters
+		*metric.Delta += val
+		// Write new value to storage
+		err = h.s.WriteMetric(agentID, metric)
+		w.WriteHeader(http.StatusOK)
+
+	default:
+		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
 		return
 	}
-	var currentVal int64
-	// Get current value from storage
-	v, ok := h.s.GetMetric(agentID, metricName)
-	if ok {
-		// Convert string to int64
-		currentVal, _ = strconv.ParseInt(v, 10, 64)
-	} else {
-		currentVal = int64(0)
-	}
-	// Sum counters
-	newVal := val + currentVal
-	// Write new value to storage
-	h.s.WriteMetric(agentID, metricName, fmt.Sprintf("%v", newVal))
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) notImplemented(w http.ResponseWriter, r *http.Request) {

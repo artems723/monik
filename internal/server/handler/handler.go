@@ -27,8 +27,7 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	// Route /update path
 	r.Route("/update", func(r chi.Router) {
-		r.Post("/gauge/{metricName}/{metricValue}", h.updateGaugeMetric)
-		r.Post("/counter/{metricName}/{metricValue}", h.updateCounterMetric)
+		r.Post("/{metricType}/{metricName}/{metricValue}", h.updateMetric)
 		r.Post("/gauge/", http.NotFound)
 		r.Post("/counter/", http.NotFound)
 		r.Post("/*", h.notImplemented)
@@ -36,8 +35,7 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	// Route /value path
 	r.Route("/value", func(r chi.Router) {
-		r.Get("/gauge/{metricName}", h.getValue)
-		r.Get("/counter/{metricName}", h.getValue)
+		r.Get("/{metricType}/{metricName}", h.getValue)
 	})
 
 	r.Route("/", func(r chi.Router) {
