@@ -60,7 +60,6 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Got get value JSON request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s\n", r.Method, r.URL.Path, agentID, metric.MType, metric.ID)
 
-	// TODO: create service
 	// Get metric from storage
 	res, err := h.s.GetMetric(agentID, metric.ID)
 	// Check for errors
@@ -74,7 +73,7 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Encode to JSON
-	resJson, _ := json.Marshal(res)
+	metricJSON, _ := json.Marshal(res)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(resJson)
+	w.Write(metricJSON)
 }
