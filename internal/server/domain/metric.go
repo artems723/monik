@@ -16,10 +16,6 @@ type Metrics struct {
 	Value *float64   `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
 
-func NewMetric(id string, mtype MetricType, delta int64, value float64) Metrics {
-	return Metrics{id, mtype, &delta, &value}
-}
-
 func NewGaugeMetric(id string, value float64) Metrics {
 	return Metrics{ID: id, MType: MetricTypeGauge, Value: &value}
 }
