@@ -2,9 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/artems723/monik/internal/server/domain"
-	"github.com/artems723/monik/internal/server/storage"
+	"github.com/artems723/monik/internal/server/service"
 	"github.com/go-chi/chi/v5"
 	"log"
 	"net"
@@ -32,7 +31,7 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		val, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
 			log.Printf("%s. Wrong value (not float64). Got: %s\n", err, metricValue)
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		// Create new metric
@@ -42,31 +41,23 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		val, err := strconv.ParseInt(metricValue, 10, 64)
 		if err != nil {
 			log.Printf("%s. Wrong value (not int64). Got: %s\n", err, metricValue)
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		// Get current metric from storage
-		metric, err = h.s.GetMetric(agentID, metricName)
-		// Check for errors
-		if err != nil && !errors.Is(err, storage.ErrNotFound) {
-			log.Printf("storage.GetMetric: %v", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		if errors.Is(err, storage.ErrNotFound) {
-			// Create new metric as soon as it doesn't exist in storage
-			metric = domain.NewCounterMetric(metricName, int64(0))
-		}
-		// Add delta to current value
-		*metric.Delta += val
+		// Create new metric
+		metric = domain.NewCounterMetric(metricName, val)
 	default:
-		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
+		http.Error(w, domain.ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
-	// Write metric to storage
+	// Write metric to service
 	err := h.s.WriteMetric(agentID, metric)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	if err != nil && err != service.ErrMTypeMismatch {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err == service.ErrMTypeMismatch {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -79,21 +70,32 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 	var metric domain.Metrics
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
-	if err != nil {
+	// Check errors
+	if err != nil && err != domain.ErrUnknownMetricType {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	log.Printf("Got update JSON request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s, metricDelta: %s, metricValue: %s\n", r.Method, r.URL.Path, agentID, metric.MType, metric.ID, metric.Delta, metric.Value)
-
-	// Write metric to storage
-	err = h.s.WriteMetric(agentID, metric)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	if err == domain.ErrUnknownMetricType {
+		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	// Encode to JSON
-	metricJSON, _ := json.Marshal(metric)
+	log.Printf("Got update JSON request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s, metricDelta: %s, metricValue: %s\n", r.Method, r.URL.Path, agentID, metric.MType, metric.ID, metric.Delta, metric.Value)
+	// Write metric to service
+	err = h.s.WriteMetric(agentID, metric)
+	if err != nil && err != service.ErrMTypeMismatch {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err == service.ErrMTypeMismatch {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	// Encode to JSON and write to response
+	err = json.NewEncoder(w).Encode(metric)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(metricJSON)
+	w.WriteHeader(http.StatusOK)
 }

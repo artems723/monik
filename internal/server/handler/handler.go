@@ -1,16 +1,16 @@
 package handler
 
 import (
-	"github.com/artems723/monik/internal/server/storage"
+	"github.com/artems723/monik/internal/server/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 type Handler struct {
-	s storage.Repository
+	s service.Service
 }
 
-func New(s storage.Repository) Handler {
+func New(s service.Service) Handler {
 	return Handler{s: s}
 }
 

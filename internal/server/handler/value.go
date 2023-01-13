@@ -18,16 +18,16 @@ func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 	log.Printf("Got get value request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s\n", r.Method, r.URL.Path, agentID, metricType, metricName)
-	// Get metric from storage
+	// Get metric from service
 	metric, err := h.s.GetMetric(agentID, metricName)
 	// Check for errors
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		log.Printf("storage.GetMetric: %v", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if errors.Is(err, storage.ErrNotFound) {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 	var str string
@@ -40,7 +40,7 @@ func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 		// Convert int64 to string
 		str = strconv.FormatInt(*metric.Delta, 10)
 	default:
-		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
+		http.Error(w, domain.ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
 	w.Write([]byte(str))
@@ -54,26 +54,34 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 	var metric domain.Metrics
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
-	if err != nil {
+	// Check errors
+	if err != nil && err != domain.ErrUnknownMetricType {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	if err == domain.ErrUnknownMetricType {
+		http.Error(w, err.Error(), http.StatusNotImplemented)
+		return
+	}
 	log.Printf("Got get value JSON request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s\n", r.Method, r.URL.Path, agentID, metric.MType, metric.ID)
-
-	// Get metric from storage
+	// Get metric from service
 	res, err := h.s.GetMetric(agentID, metric.ID)
 	// Check for errors
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		log.Printf("storage.GetMetric: %v", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if errors.Is(err, storage.ErrNotFound) {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	// Encode to JSON
-	metricJSON, _ := json.Marshal(res)
+	// Encode to JSON and write to response
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(metricJSON)
+	w.WriteHeader(http.StatusOK)
 }
