@@ -23,6 +23,7 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
+	var metric domain.Metrics
 	// Check metric type
 	switch domain.MetricType(metricType) {
 	case domain.MetricTypeGauge:
@@ -34,14 +35,7 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Create new metric
-		metric := domain.NewGaugeMetric(metricName, val)
-		// Write metric to storage
-		err = h.s.WriteMetric(agentID, metric)
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
+		metric = domain.NewGaugeMetric(metricName, val)
 	case domain.MetricTypeCounter:
 		// Convert string to int64
 		val, err := strconv.ParseInt(metricValue, 10, 64)
@@ -51,7 +45,7 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Get current metric from storage
-		metric, err := h.s.GetMetric(agentID, metricName)
+		metric, err = h.s.GetMetric(agentID, metricName)
 		// Check for errors
 		if err != nil && !errors.Is(err, storage.ErrNotFound) {
 			log.Printf("storage.GetMetric: %v", err)
@@ -64,15 +58,15 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		}
 		// Add delta to current value
 		*metric.Delta += val
-		// Write metric with new value to storage
-		err = h.s.WriteMetric(agentID, metric)
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
 	default:
 		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
 		return
 	}
+	// Write metric to storage
+	err := h.s.WriteMetric(agentID, metric)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
