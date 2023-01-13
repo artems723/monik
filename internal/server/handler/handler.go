@@ -26,6 +26,7 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	r.Route("/update", func(r chi.Router) {
 		r.Post("/{metricType}/{metricName}/{metricValue}", h.updateMetric)
+		r.Post("/", h.updateMetricJSON)
 	})
 
 	r.Route("/value", func(r chi.Router) {

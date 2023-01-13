@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/storage"
@@ -17,7 +18,7 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
-	log.Printf("Got update request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s metricValue: %s\n", r.Method, r.URL.Path, agentID, metricType, metricName, metricValue)
+	log.Printf("Got update request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s, metricValue: %s\n", r.Method, r.URL.Path, agentID, metricType, metricName, metricValue)
 	// Check if no metric name provided in the URL
 	if metricName == "" {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -69,4 +70,30 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
+	// Get client's IP address and use it as agentID
+	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
+
+	var metric domain.Metrics
+	// Read JSON and store to metric struct
+	err := json.NewDecoder(r.Body).Decode(&metric)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Got update JSON request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s, metricDelta: %s, metricValue: %s\n", r.Method, r.URL.Path, agentID, metric.MType, metric.ID, metric.Delta, metric.Value)
+
+	// Write metric to storage
+	err = h.s.WriteMetric(agentID, metric)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	// Encode to JSON
+	metricJSON, _ := json.Marshal(metric)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(metricJSON)
 }
