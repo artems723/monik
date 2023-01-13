@@ -28,6 +28,10 @@ func NewCounterMetric(id string, delta int64) Metrics {
 	return Metrics{ID: id, MType: MetricTypeCounter, Delta: &delta}
 }
 
+func NewMetric(id, mType string) Metrics {
+	return Metrics{ID: id, MType: MetricType(mType)}
+}
+
 func (m Metrics) String() string {
 	var s string
 	// check metric type

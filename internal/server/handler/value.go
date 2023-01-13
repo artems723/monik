@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/artems723/monik/internal/server/domain"
+	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
 	"log"
@@ -19,14 +20,14 @@ func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 	metricName := chi.URLParam(r, "metricName")
 	log.Printf("Got get value request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s\n", r.Method, r.URL.Path, agentID, metricType, metricName)
 	// Get metric from service
-	metric, err := h.s.GetMetric(agentID, metricName)
+	metric, err := h.s.GetMetric(agentID, domain.NewMetric(metricName, metricType))
 	// Check for errors
-	if err != nil && !errors.Is(err, storage.ErrNotFound) {
+	if err != nil && !errors.Is(err, storage.ErrNotFound) && !errors.Is(err, service.ErrMTypeMismatch) {
 		log.Printf("storage.GetMetric: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if errors.Is(err, storage.ErrNotFound) {
+	if errors.Is(err, storage.ErrNotFound) || errors.Is(err, service.ErrMTypeMismatch) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -65,14 +66,14 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Got get value JSON request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s\n", r.Method, r.URL.Path, agentID, metric.MType, metric.ID)
 	// Get metric from service
-	res, err := h.s.GetMetric(agentID, metric.ID)
+	res, err := h.s.GetMetric(agentID, metric)
 	// Check for errors
-	if err != nil && !errors.Is(err, storage.ErrNotFound) {
+	if err != nil && !errors.Is(err, storage.ErrNotFound) && !errors.Is(err, service.ErrMTypeMismatch) {
 		log.Printf("storage.GetMetric: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if errors.Is(err, storage.ErrNotFound) {
+	if errors.Is(err, storage.ErrNotFound) || errors.Is(err, service.ErrMTypeMismatch) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}

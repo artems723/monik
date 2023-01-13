@@ -52,8 +52,12 @@ func (s Service) WriteMetric(agentID string, metric domain.Metrics) error {
 	return err
 }
 
-func (s Service) GetMetric(agentID, metricName string) (domain.Metrics, error) {
-	return s.storage.GetMetric(agentID, metricName)
+func (s Service) GetMetric(agentID string, metric domain.Metrics) (domain.Metrics, error) {
+	curMetric, err := s.storage.GetMetric(agentID, metric.ID)
+	if curMetric.MType != metric.MType {
+		return curMetric, ErrMTypeMismatch
+	}
+	return curMetric, err
 }
 
 func (s Service) GetAllMetrics(agentID string) (map[string]domain.Metrics, error) {
