@@ -29,19 +29,19 @@ func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
+	var str string
 	// Check metric type
 	switch metric.MType {
 	case domain.MetricTypeGauge:
 		// Convert float64 to string
-		s := strconv.FormatFloat(*metric.Value, 'f', 3, 64)
-		w.Write([]byte(s))
+		str = strconv.FormatFloat(*metric.Value, 'f', 3, 64)
 	case domain.MetricTypeCounter:
 		// Convert int64 to string
-		s := strconv.FormatInt(*metric.Delta, 10)
-		w.Write([]byte(s))
+		str = strconv.FormatInt(*metric.Delta, 10)
 	default:
 		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
 		return
 	}
+	w.Write([]byte(str))
 	w.WriteHeader(http.StatusOK)
 }
