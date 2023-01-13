@@ -52,11 +52,11 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 	// Write metric to service
 	err := h.s.WriteMetric(agentID, metric)
-	if err != nil && err != service.ErrMTypeMismatch {
+	if err != nil && err != service.ErrMTypeMismatch && err != service.ErrNoValue {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err == service.ErrMTypeMismatch {
+	if err == service.ErrMTypeMismatch || err == service.ErrNoValue {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -82,11 +82,11 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Got update JSON request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s, metricDelta: %s, metricValue: %s\n", r.Method, r.URL.Path, agentID, metric.MType, metric.ID, metric.Delta, metric.Value)
 	// Write metric to service
 	err = h.s.WriteMetric(agentID, metric)
-	if err != nil && err != service.ErrMTypeMismatch {
+	if err != nil && err != service.ErrMTypeMismatch && err != service.ErrNoValue {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err == service.ErrMTypeMismatch {
+	if err == service.ErrMTypeMismatch || err == service.ErrNoValue {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

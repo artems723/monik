@@ -19,8 +19,15 @@ func (s Service) WriteMetric(agentID string, metric domain.Metrics) error {
 	// Check metric type
 	switch metric.MType {
 	case domain.MetricTypeGauge:
-		// do nothing at this moment
+		// Check that value exists
+		if metric.Value == nil {
+			return ErrNoValue
+		}
 	case domain.MetricTypeCounter:
+		// Check that delta exists
+		if metric.Delta == nil {
+			return ErrNoValue
+		}
 		// Get current metric from storage to sum deltas
 		m, err := s.storage.GetMetric(agentID, metric.ID)
 		// Check for errors
@@ -54,3 +61,4 @@ func (s Service) GetAllMetrics(agentID string) (map[string]domain.Metrics, error
 }
 
 var ErrMTypeMismatch = errors.New("metric type mismatch")
+var ErrNoValue = errors.New("no value")

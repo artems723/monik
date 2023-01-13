@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -52,28 +51,4 @@ func (t *MetricType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (t *Metrics) UnmarshalJSON(data []byte) error {
-	type MetricsAlias Metrics
-	var aliasValue MetricsAlias
-	err := json.Unmarshal(data, &aliasValue)
-	if err != nil {
-		return err
-	}
-	switch aliasValue.MType {
-	case MetricTypeGauge:
-		if aliasValue.Value == nil {
-			return ErrNoValue
-		}
-	case MetricTypeCounter:
-		if aliasValue.Delta == nil {
-			return ErrNoValue
-		}
-	default:
-		return ErrUnknownMetricType
-	}
-	*t = Metrics(aliasValue)
-	return nil
-}
-
 var ErrUnknownMetricType = errors.New("unknown metric type")
-var ErrNoValue = errors.New("no value")
