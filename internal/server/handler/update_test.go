@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -12,7 +13,7 @@ import (
 
 func TestHandler_updateMetric(t *testing.T) {
 	type fields struct {
-		s storage.Repository
+		s service.Service
 	}
 	type want struct {
 		contentType string
@@ -36,28 +37,28 @@ func TestHandler_updateMetric(t *testing.T) {
 	}{
 		{
 			name:      "test 200 code",
-			fields:    fields{storage.NewMemStorage()},
+			fields:    fields{service.New(storage.NewMemStorage())},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"", 200},
 			urlParams: urlParams{"counter", "name", "2"},
 		},
 		{
 			name:      "test 400 code",
-			fields:    fields{storage.NewMemStorage()},
+			fields:    fields{service.New(storage.NewMemStorage())},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"text/plain; charset=utf-8", 400},
 			urlParams: urlParams{"counter", "name", ""},
 		},
 		{
 			name:      "test 200 code",
-			fields:    fields{storage.NewMemStorage()},
+			fields:    fields{service.New(storage.NewMemStorage())},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"", 200},
 			urlParams: urlParams{"gauge", "name", "2"},
 		},
 		{
 			name:      "test 400 code",
-			fields:    fields{storage.NewMemStorage()},
+			fields:    fields{service.New(storage.NewMemStorage())},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"text/plain; charset=utf-8", 400},
 			urlParams: urlParams{"gauge", "name", ""},

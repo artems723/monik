@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/artems723/monik/internal/server/domain"
+	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ import (
 
 func TestHandler_getValue(t *testing.T) {
 	type fields struct {
-		s          storage.Repository
+		s          service.Service
 		id         string
 		valGauge   float64
 		valCounter int64
@@ -41,15 +42,15 @@ func TestHandler_getValue(t *testing.T) {
 		urlParams urlParams
 	}{
 		{
-			name:      "test get value",
-			fields:    fields{s: storage.NewMemStorage(), valGauge: 20.201},
+			name:      "test get gauge value",
+			fields:    fields{s: service.New(storage.NewMemStorage()), valGauge: 20.201},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
 			want:      want{"text/plain; charset=utf-8", 200, "20.201"},
 			urlParams: urlParams{"gauge", "Alloc"},
 		},
 		{
-			name:      "test get value",
-			fields:    fields{s: storage.NewMemStorage(), valCounter: 20},
+			name:      "test get counter value",
+			fields:    fields{s: service.New(storage.NewMemStorage()), valCounter: 20},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
 			want:      want{"text/plain; charset=utf-8", 200, "20"},
 			urlParams: urlParams{"counter", "PollCount"},
@@ -61,6 +62,7 @@ func TestHandler_getValue(t *testing.T) {
 				s: tt.fields.s,
 			}
 			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("metricType", tt.urlParams.metricType)
 			rctx.URLParams.Add("metricName", tt.urlParams.metricName)
 
 			tt.args.r = tt.args.r.WithContext(context.WithValue(tt.args.r.Context(), chi.RouteCtxKey, rctx))

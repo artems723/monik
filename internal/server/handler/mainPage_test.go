@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/artems723/monik/internal/server/domain"
+	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -13,7 +14,7 @@ import (
 
 func TestHandler_mainPage(t *testing.T) {
 	type fields struct {
-		s  storage.Repository
+		s  service.Service
 		id string
 	}
 	type want struct {
@@ -35,7 +36,7 @@ func TestHandler_mainPage(t *testing.T) {
 	}{
 		{
 			name:   "test get value",
-			fields: fields{s: storage.NewMemStorage()},
+			fields: fields{s: service.New(storage.NewMemStorage())},
 			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
 			want:   want{"text/plain; charset=utf-8", 200, "Alloc=\"ID: Alloc, Mtype: gauge, Value: 20.200000\"\n", "Alloc", 20.20},
 		},
