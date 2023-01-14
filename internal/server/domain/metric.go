@@ -33,15 +33,18 @@ func NewMetric(id, mType string) Metrics {
 }
 
 func (m Metrics) String() string {
-	var s string
 	// check metric type
 	switch m.MType {
 	case MetricTypeGauge:
-		s = fmt.Sprintf("ID: %s, Mtype: %s, Value: %f", m.ID, m.MType, *m.Value)
+		if m.Value != nil {
+			return fmt.Sprintf("ID: %s, Mtype: %s, Value: %f", m.ID, m.MType, *m.Value)
+		}
 	case MetricTypeCounter:
-		s = fmt.Sprintf("ID: %s, Mtype: %s, Delta: %d", m.ID, m.MType, *m.Delta)
+		if m.Delta != nil {
+			return fmt.Sprintf("ID: %s, Mtype: %s, Delta: %d", m.ID, m.MType, *m.Delta)
+		}
 	}
-	return s
+	return fmt.Sprintf("ID: %s, Mtype: %s", m.ID, m.MType)
 }
 
 func (t *MetricType) UnmarshalJSON(data []byte) error {

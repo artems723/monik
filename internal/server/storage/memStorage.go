@@ -31,7 +31,7 @@ func (m *MemStorage) WriteMetric(agentID string, metric domain.Metrics) error {
 	}
 	// add metric to storage
 	m.storage[agentID][metric.ID] = metric
-	log.Printf("Storage was updated. New storage for agent %s: %#v", agentID, m.storage[agentID])
+	log.Printf("Storage was updated for agent %s\n", agentID)
 	return nil
 }
 
