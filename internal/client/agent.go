@@ -64,12 +64,12 @@ func (agent *Agent) UpdateMetrics() {
 
 // send metrics data to http server
 func (agent *Agent) SendData(URL string, client HTTPClient) {
-
+	log.Printf("Sending data")
 	// send gauges
 	for key, val := range agent.gaugeMetrics {
 		urlString := fmt.Sprintf("%s/update/gauge/%s/%f", URL, key, val)
 
-		log.Printf("Sending data to %s\n", urlString)
+		//log.Printf("Sending data to %s\n", urlString)
 		_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
 		if err != nil {
 			log.Printf("Error sending request: %s\n", err)

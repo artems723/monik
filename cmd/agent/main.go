@@ -15,7 +15,7 @@ func newMonitor(pollInterval, reportInterval time.Duration, serverAddr string, h
 		select {
 		case <-pollIntervalTicker.C:
 			agent.UpdateMetrics()
-			log.Printf("Got counters: %#v", agent)
+			log.Printf("Got counters")
 		case <-reportIntervalTicker.C:
 			agent.SendData(serverAddr, httpClient)
 		}
