@@ -28,15 +28,11 @@ func NewGaugeMetric(id string, value float64) Metrics {
 	return Metrics{ID: id, MType: MetricTypeGauge, Value: &value}
 }
 
-func NewCounterMetric(id string, delta int64) *Metrics {
-	return &Metrics{ID: id, MType: MetricTypeCounter, Delta: &delta}
+func NewCounterMetric(id string, delta int64) Metrics {
+	return Metrics{ID: id, MType: MetricTypeCounter, Delta: &delta}
 }
 
-func NewMetric(id string, mType MetricType) *Metrics {
-	return &Metrics{ID: id, MType: mType}
-}
-
-func (m Metrics) String() string {
+func (m *Metrics) String() string {
 	// check metric type
 	switch m.MType {
 	case MetricTypeGauge:

@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/artems723/monik/internal/client"
-	"log"
 	"time"
 )
 
@@ -15,7 +14,6 @@ func newMonitor(pollInterval, reportInterval time.Duration, serverAddr string, h
 		select {
 		case <-pollIntervalTicker.C:
 			agent.UpdateMetrics()
-			log.Printf("Got counters")
 		case <-reportIntervalTicker.C:
 			agent.SendData(serverAddr, httpClient)
 		}
