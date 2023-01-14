@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
@@ -85,65 +88,62 @@ func TestHandler_updateMetric(t *testing.T) {
 	}
 }
 
-//func TestHandler_updateMetricJSON(t *testing.T) {
-//	type fields struct {
-//		s service.Service
-//	}
-//	type want struct {
-//		contentType string
-//		statusCode  int
-//		metric      domain.Metrics
-//	}
-//	type args struct {
-//		w           http.ResponseWriter
-//		r           *http.Request
-//		contentType string
-//		metric      domain.Metrics
-//	}
-//	tests := []struct {
-//		name   string
-//		fields fields
-//		want   want
-//		args   args
-//	}{
-//		{
-//			name:   "test success path",
-//			fields: fields{s: service.New(storage.NewMemStorage())},
-//			want: want{
-//				contentType: "application/json",
-//				statusCode:  200,
-//				metric:      domain.NewCounterMetric("PollCount", 6),
-//			},
-//			args: args{
-//				w:           httptest.NewRecorder(),
-//				r:           httptest.NewRequest(http.MethodPost, "/", nil),
-//				contentType: "application/json",
-//				metric:      domain.NewCounterMetric("PollCount", 6),
-//			},
-//		},
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			h := &Handler{
-//				s: tt.fields.s,
-//			}
-//			tt.args.r.Header.Set("Content-Type", tt.args.contentType)
-//			// Convert metric to JSON
-//			m, _ := json.Marshal(tt.args.metric)
-//			// Write JSON to request body
-//			tt.args.r = httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(m))
-//			//tt.args.r.Write(bytes.NewBuffer(m))
-//			// Run handler
-//			h.updateMetricJSON(tt.args.w, tt.args.r)
-//			response := tt.args.w.(*httptest.ResponseRecorder).Result()
-//			defer response.Body.Close()
-//			// Get JSON response as metric struct
-//			var b domain.Metrics
-//			json.NewEncoder(tt.args.w).Encode(b)
-//
-//			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))
-//			assert.Equal(t, tt.want.statusCode, response.StatusCode)
-//			assert.Equal(t, tt.want.metric, b)
-//		})
-//	}
-//}
+func TestHandler_updateMetricJSON(t *testing.T) {
+	type fields struct {
+		s service.Service
+	}
+	type want struct {
+		contentType string
+		statusCode  int
+		metric      domain.Metrics
+	}
+	type args struct {
+		w           http.ResponseWriter
+		r           *http.Request
+		contentType string
+		metric      domain.Metrics
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   want
+		args   args
+	}{
+		{
+			name:   "test success path",
+			fields: fields{s: service.New(storage.NewMemStorage())},
+			want: want{
+				contentType: "application/json",
+				statusCode:  200,
+				metric:      domain.NewCounterMetric("PollCount", 6),
+			},
+			args: args{
+				w:           httptest.NewRecorder(),
+				r:           httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer([]byte("{\"id\":\"PollCount\",\"type\":\"counter\",\"delta\":6}"))),
+				contentType: "application/json",
+				metric:      domain.NewCounterMetric("PollCount", 6),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &Handler{
+				s: tt.fields.s,
+			}
+			// Set content-type
+			tt.args.r.Header.Set("Content-Type", tt.args.contentType)
+			// Run handler
+			h.updateMetricJSON(tt.args.w, tt.args.r)
+			// Get response
+			response := tt.args.w.(*httptest.ResponseRecorder).Result()
+			defer response.Body.Close()
+			// Get JSON response as metric struct
+			var b domain.Metrics
+			json.NewDecoder(response.Body).Decode(&b)
+
+			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))
+			assert.Equal(t, tt.want.statusCode, response.StatusCode)
+			assert.Equal(t, tt.want.metric, b)
+		})
+	}
+}

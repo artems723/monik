@@ -64,7 +64,7 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	log.Printf("Got get value JSON request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s\n", r.Method, r.URL.Path, agentID, metric.MType, metric.ID)
+	log.Printf("Got get value JSON request. Method=%s, Path: %s, agentID: %s, metric: %v\n", r.Method, r.URL.Path, agentID, metric)
 	// Get metric from service
 	res, err := h.s.GetMetric(agentID, metric)
 	// Check for errors

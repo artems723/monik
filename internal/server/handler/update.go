@@ -79,7 +79,7 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	log.Printf("Got update JSON request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s, metricDelta: %d, metricValue: %f\n", r.Method, r.URL.Path, agentID, metric.MType, metric.ID, *metric.Delta, *metric.Value)
+	log.Printf("Got update JSON request. Method=%s, Path: %s, agentID: %s, metric: %v\n", r.Method, r.URL.Path, agentID, metric)
 	// Write metric to service
 	err = h.s.WriteMetric(agentID, metric)
 	if err != nil && err != service.ErrMTypeMismatch && err != service.ErrNoValue {
