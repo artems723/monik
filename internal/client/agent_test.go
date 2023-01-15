@@ -63,7 +63,7 @@ func TestAgent_UpdateMetrics(t *testing.T) {
 				storage: tt.fields.metrics,
 			}
 			agent.UpdateMetrics()
-			assert.Equal(t, *agent.storage["pollCount"].Delta, int64(1))
+			assert.Equal(t, *agent.storage["PollCount"].Delta, int64(1))
 			_, ok := agent.storage["Alloc"]
 			assert.Equal(t, true, ok)
 		})

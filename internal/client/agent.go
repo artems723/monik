@@ -50,12 +50,12 @@ func (agent *Agent) UpdateMetrics() {
 	agent.storage["TotalAlloc"] = NewGaugeMetric("TotalAlloc", float64(rtm.TotalAlloc))
 	agent.storage["RandomValue"] = NewGaugeMetric("RandomValue", rand.Float64())
 	// Check that counter metric exists
-	if _, ok := agent.storage["pollCount"]; !ok {
-		agent.storage["pollCount"] = NewCounterMetric("pollCount", 0)
+	if _, ok := agent.storage["PollCount"]; !ok {
+		agent.storage["PollCount"] = NewCounterMetric("PollCount", 0)
 	}
 	// Update counter
-	*agent.storage["pollCount"].Delta++
-	log.Printf("Got counters. pollCount=%d", *agent.storage["pollCount"].Delta)
+	*agent.storage["PollCount"].Delta++
+	log.Printf("Got counters. PollCount=%d", *agent.storage["PollCount"].Delta)
 }
 
 // Send metrics to http server
@@ -77,8 +77,8 @@ func (agent *Agent) SendData(URL string, client HTTPClient) {
 		}
 	}
 	// reset the counter
-	if _, ok := agent.storage["pollCount"]; ok {
-		*agent.storage["pollCount"].Delta = 0
+	if _, ok := agent.storage["PollCount"]; ok {
+		*agent.storage["PollCount"].Delta = 0
 	}
 	log.Printf("Metrics were succesfully sent")
 }
