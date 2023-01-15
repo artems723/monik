@@ -13,18 +13,14 @@ type Agent struct {
 }
 
 func NewAgent() Agent {
-	m := make(map[string]Metrics)
-	m["pollCount"] = NewCounterMetric("pollCount", 0)
-	return Agent{storage: m}
+	return Agent{storage: make(map[string]Metrics)}
 }
 
 func (agent *Agent) UpdateMetrics() {
 	var rtm runtime.MemStats
-
-	//Read memory stats
+	// Read memory stats
 	runtime.ReadMemStats(&rtm)
-
-	//Update metrics
+	// Update metrics
 	agent.storage["Alloc"] = NewGaugeMetric("Alloc", float64(rtm.Alloc))
 	agent.storage["BuckHashSys"] = NewGaugeMetric("BuckHashSys", float64(rtm.BuckHashSys))
 	agent.storage["Frees"] = NewGaugeMetric("Frees", float64(rtm.Frees))
@@ -52,17 +48,20 @@ func (agent *Agent) UpdateMetrics() {
 	agent.storage["StackSys"] = NewGaugeMetric("StackSys", float64(rtm.StackSys))
 	agent.storage["Sys"] = NewGaugeMetric("Sys", float64(rtm.Sys))
 	agent.storage["TotalAlloc"] = NewGaugeMetric("TotalAlloc", float64(rtm.TotalAlloc))
-	*agent.storage["pollCount"].Delta++
 	agent.storage["RandomValue"] = NewGaugeMetric("RandomValue", rand.Float64())
-	log.Printf("Got counters")
+	// Check that counter metric exists
+	if _, ok := agent.storage["pollCount"]; !ok {
+		agent.storage["pollCount"] = NewCounterMetric("pollCount", 0)
+	}
+	// Update counter
+	*agent.storage["pollCount"].Delta++
+	log.Printf("Got counters. pollCount=%d", *agent.storage["pollCount"].Delta)
 }
 
-// send metrics data to http server
+// Send metrics to http server
 func (agent *Agent) SendData(URL string, client HTTPClient) {
-	// send metrics
+	urlString := fmt.Sprintf("%s/update/", URL)
 	for _, metric := range agent.storage {
-		urlString := fmt.Sprintf("%s/update/", URL)
-
 		m, err := json.Marshal(metric)
 		if err != nil {
 			log.Printf("agent.SendData: unable to marshal. Error: %v. Metric: %v", err, metric)
@@ -78,6 +77,8 @@ func (agent *Agent) SendData(URL string, client HTTPClient) {
 		}
 	}
 	// reset the counter
-	*agent.storage["pollCount"].Delta = 0
+	if _, ok := agent.storage["pollCount"]; ok {
+		*agent.storage["pollCount"].Delta = 0
+	}
 	log.Printf("Metrics were succesfully sent")
 }
