@@ -49,7 +49,7 @@ func (agent *Agent) UpdateMetrics() {
 	agent.storage["Sys"] = NewGaugeMetric("Sys", float64(rtm.Sys))
 	agent.storage["TotalAlloc"] = NewGaugeMetric("TotalAlloc", float64(rtm.TotalAlloc))
 	agent.storage["RandomValue"] = NewGaugeMetric("RandomValue", rand.Float64())
-	// Check that counter metric exists
+	// Check if no counter metric exists
 	if _, ok := agent.storage["PollCount"]; !ok {
 		agent.storage["PollCount"] = NewCounterMetric("PollCount", 0)
 	}
