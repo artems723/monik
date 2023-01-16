@@ -64,9 +64,9 @@ func (s *Service) GetAllMetrics() (map[string]*domain.Metric, error) {
 	return s.storage.GetAllMetrics()
 }
 
-func (s *Service) WriteMetrics(metrics []*domain.Metric) error {
-	for _, metric := range metrics {
-		err := s.WriteMetric(metric)
+func (s *Service) WriteMetrics(metrics *domain.Metrics) error {
+	for _, metric := range metrics.Metrics {
+		err := s.WriteMetric(&metric)
 		if err != nil {
 			return err
 		}

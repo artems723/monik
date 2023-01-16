@@ -47,38 +47,22 @@ func (s *Store) Run(storeInterval time.Duration, storeFile string, restore bool)
 	}
 }
 
-func (s *Store) WriteMetrics(metrics map[string]*domain.Metric) error {
+func (s *Store) WriteMetrics(metrics domain.Metric) error {
 	// TODO: check
 	return s.encoder.Encode(&metrics)
 }
 
-func (s *Store) ReadMetrics() ([]*domain.Metric, error) {
-	metrics := make([]*domain.Metric, 30)
-	// read open bracket
-	_, err := s.decoder.Token()
-	if err == io.EOF {
-		return nil, ErrEmptyFile
-	}
+func (s *Store) ReadMetrics() (*domain.Metrics, error) {
+	// read our opened jsonFile as a byte array.
+	byteValue, _ := io.ReadAll(s.file)
+
+	var metrics domain.Metrics
+
+	err := json.Unmarshal(byteValue, &metrics)
 	if err != nil {
-		return nil, errors.New("error reading file")
+		return nil, err
 	}
-	// while the array contains values
-	for s.decoder.More() {
-		var m domain.Metric
-		// decode an array value (Metric)
-		err := s.decoder.Decode(&m)
-		// add metric to slice
-		metrics = append(metrics, &m)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	// read closing bracket
-	_, err = s.decoder.Token()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return metrics, nil
+	return &metrics, nil
 }
 
 var ErrEmptyFile = errors.New("no file or empty file")
