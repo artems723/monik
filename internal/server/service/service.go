@@ -15,7 +15,7 @@ func New(s storage.Repository) Service {
 	return Service{storage: s}
 }
 
-func (s *Service) WriteMetric(metric *domain.Metrics) error {
+func (s *Service) WriteMetric(metric *domain.Metric) error {
 	// Check metric type
 	switch metric.MType {
 	case domain.MetricTypeGauge:
@@ -52,7 +52,7 @@ func (s *Service) WriteMetric(metric *domain.Metrics) error {
 	return err
 }
 
-func (s *Service) GetMetric(metric *domain.Metrics) (*domain.Metrics, error) {
+func (s *Service) GetMetric(metric *domain.Metric) (*domain.Metric, error) {
 	curMetric, err := s.storage.GetMetric(metric.ID)
 	if curMetric != nil && curMetric.MType != metric.MType {
 		return curMetric, ErrMTypeMismatch
@@ -60,11 +60,11 @@ func (s *Service) GetMetric(metric *domain.Metrics) (*domain.Metrics, error) {
 	return curMetric, err
 }
 
-func (s *Service) GetAllMetrics() (map[string]*domain.Metrics, error) {
+func (s *Service) GetAllMetrics() (map[string]*domain.Metric, error) {
 	return s.storage.GetAllMetrics()
 }
 
-func (s *Service) WriteMetrics(metrics []*domain.Metrics) error {
+func (s *Service) WriteMetrics(metrics []*domain.Metric) error {
 	for _, metric := range metrics {
 		err := s.WriteMetric(metric)
 		if err != nil {

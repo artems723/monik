@@ -8,7 +8,7 @@ import (
 
 func TestMemStorage_GetMetric(t *testing.T) {
 	type fields struct {
-		storage map[string]*domain.Metrics
+		storage map[string]*domain.Metric
 	}
 	type args struct {
 		metricName string
@@ -17,7 +17,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   domain.Metrics
+		want   domain.Metric
 		want1  error
 	}{
 		{
@@ -43,10 +43,10 @@ func TestMemStorage_GetMetric(t *testing.T) {
 
 func TestMemStorage_WriteMetric(t *testing.T) {
 	type fields struct {
-		storage map[string]*domain.Metrics
+		storage map[string]*domain.Metric
 	}
 	type args struct {
-		metric *domain.Metrics
+		metric *domain.Metric
 	}
 	tests := []struct {
 		name   string
@@ -77,7 +77,7 @@ func TestNewMemStorage(t *testing.T) {
 	}{
 		{
 			name: "test new storage",
-			want: &MemStorage{storage: make(map[string]*domain.Metrics)},
+			want: &MemStorage{storage: make(map[string]*domain.Metric)},
 		},
 	}
 	for _, tt := range tests {

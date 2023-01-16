@@ -95,13 +95,13 @@ func TestHandler_updateMetricJSON(t *testing.T) {
 	type want struct {
 		contentType string
 		statusCode  int
-		metric      *domain.Metrics
+		metric      *domain.Metric
 	}
 	type args struct {
 		w           http.ResponseWriter
 		r           *http.Request
 		contentType string
-		metric      *domain.Metrics
+		metric      *domain.Metric
 	}
 	tests := []struct {
 		name   string
@@ -138,7 +138,7 @@ func TestHandler_updateMetricJSON(t *testing.T) {
 			response := tt.args.w.(*httptest.ResponseRecorder).Result()
 			defer response.Body.Close()
 			// Get JSON response as metric struct
-			var b domain.Metrics
+			var b domain.Metric
 			json.NewDecoder(response.Body).Decode(&b)
 
 			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))

@@ -6,9 +6,9 @@ import (
 )
 
 type Repository interface {
-	GetMetric(metricName string) (*domain.Metrics, error)
-	WriteMetric(metric *domain.Metrics) error
-	GetAllMetrics() (map[string]*domain.Metrics, error)
+	GetMetric(metricName string) (*domain.Metric, error)
+	WriteMetric(metric *domain.Metric) error
+	GetAllMetrics() (map[string]*domain.Metric, error)
 }
 
 var ErrNotFound = errors.New("not found")

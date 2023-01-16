@@ -47,13 +47,13 @@ func (s *Store) Run(storeInterval time.Duration, storeFile string, restore bool)
 	}
 }
 
-func (s *Store) WriteMetrics(metrics map[string]*domain.Metrics) error {
+func (s *Store) WriteMetrics(metrics map[string]*domain.Metric) error {
 	// TODO: check
 	return s.encoder.Encode(&metrics)
 }
 
-func (s *Store) ReadMetrics() ([]*domain.Metrics, error) {
-	metrics := make([]*domain.Metrics, 30)
+func (s *Store) ReadMetrics() ([]*domain.Metric, error) {
+	metrics := make([]*domain.Metric, 30)
 	// read open bracket
 	_, err := s.decoder.Token()
 	if err == io.EOF {
@@ -64,8 +64,8 @@ func (s *Store) ReadMetrics() ([]*domain.Metrics, error) {
 	}
 	// while the array contains values
 	for s.decoder.More() {
-		var m domain.Metrics
-		// decode an array value (Metrics)
+		var m domain.Metric
+		// decode an array value (Metric)
 		err := s.decoder.Decode(&m)
 		// add metric to slice
 		metrics = append(metrics, &m)

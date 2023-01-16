@@ -50,7 +50,7 @@ func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
-	var metric *domain.Metrics
+	var metric *domain.Metric
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
 	// Check errors

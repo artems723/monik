@@ -20,7 +20,7 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
-	var metric *domain.Metrics
+	var metric *domain.Metric
 	// Check metric type
 	switch domain.MetricType(metricType) {
 	case domain.MetricTypeGauge:
@@ -61,7 +61,7 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
-	var metric *domain.Metrics
+	var metric *domain.Metric
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
 	// Check errors
