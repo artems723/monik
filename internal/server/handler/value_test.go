@@ -70,7 +70,7 @@ func TestHandler_getValue(t *testing.T) {
 			tt.args.r = tt.args.r.WithContext(context.WithValue(tt.args.r.Context(), chi.RouteCtxKey, rctx))
 
 			// add metric to storage
-			var metric domain.Metrics
+			var metric *domain.Metrics
 			switch domain.MetricType(tt.urlParams.metricType) {
 			case domain.MetricTypeGauge:
 				metric = domain.NewGaugeMetric(tt.urlParams.metricName, tt.fields.valGauge)
@@ -105,13 +105,13 @@ func TestHandler_getValueJSON(t *testing.T) {
 	type want struct {
 		contentType string
 		statusCode  int
-		metric      domain.Metrics
+		metric      *domain.Metrics
 	}
 	type args struct {
 		w           http.ResponseWriter
 		r           *http.Request
 		contentType string
-		metric      domain.Metrics
+		metric      *domain.Metrics
 		id          string
 	}
 	tests := []struct {
@@ -160,7 +160,7 @@ func TestHandler_getValueJSON(t *testing.T) {
 
 			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))
 			assert.Equal(t, tt.want.statusCode, response.StatusCode)
-			assert.Equal(t, tt.want.metric, b)
+			assert.Equal(t, *tt.want.metric, b)
 		})
 	}
 }

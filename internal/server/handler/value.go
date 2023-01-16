@@ -52,7 +52,7 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 	// Get client's IP address and use it as agentID
 	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
 
-	var metric domain.Metrics
+	var metric *domain.Metrics
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
 	// Check errors

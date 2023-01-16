@@ -10,7 +10,7 @@ import (
 
 func TestAgent_SendData(t *testing.T) {
 	type fields struct {
-		gaugeMetrics map[string]Metrics
+		storage map[string]*Metrics
 	}
 	type args struct {
 		URL    string
@@ -23,14 +23,14 @@ func TestAgent_SendData(t *testing.T) {
 	}{
 		{
 			name:   "test send",
-			fields: fields{gaugeMetrics: make(map[string]Metrics)},
+			fields: fields{storage: make(map[string]*Metrics)},
 			args:   args{URL: "", client: NewHTTPClient()},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			agent := &Agent{
-				storage: tt.fields.gaugeMetrics,
+				storage: tt.fields.storage,
 			}
 			teardown := setup()
 			defer teardown()
@@ -46,7 +46,7 @@ func TestAgent_SendData(t *testing.T) {
 
 func TestAgent_UpdateMetrics(t *testing.T) {
 	type fields struct {
-		metrics map[string]Metrics
+		metrics map[string]*Metrics
 	}
 	tests := []struct {
 		name   string
@@ -54,7 +54,7 @@ func TestAgent_UpdateMetrics(t *testing.T) {
 	}{
 		{
 			name:   "test update metrics",
-			fields: fields{metrics: make(map[string]Metrics)},
+			fields: fields{metrics: make(map[string]*Metrics)},
 		},
 	}
 	for _, tt := range tests {
@@ -77,7 +77,7 @@ func TestNewAgent(t *testing.T) {
 	}{
 		{
 			name: "test new agent",
-			want: Agent{storage: make(map[string]Metrics)},
+			want: Agent{storage: make(map[string]*Metrics)},
 		},
 	}
 	for _, tt := range tests {

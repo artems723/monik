@@ -9,11 +9,11 @@ import (
 )
 
 type Agent struct {
-	storage map[string]Metrics
+	storage map[string]*Metrics
 }
 
 func NewAgent() Agent {
-	return Agent{storage: make(map[string]Metrics)}
+	return Agent{storage: make(map[string]*Metrics)}
 }
 
 func (agent *Agent) UpdateMetrics() {

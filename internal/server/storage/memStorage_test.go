@@ -3,13 +3,12 @@ package storage
 import (
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/stretchr/testify/assert"
-	"reflect"
 	"testing"
 )
 
 func TestMemStorage_GetMetric(t *testing.T) {
 	type fields struct {
-		storage map[string]map[string]domain.Metrics
+		storage map[string]map[string]*domain.Metrics
 	}
 	type args struct {
 		agentID    string
@@ -26,7 +25,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 			name:   "test read",
 			fields: fields{storage: NewMemStorage().storage},
 			args:   args{agentID: "127.0.0.1", metricName: "testMetric"},
-			want:   domain.NewGaugeMetric("testMetric", 5.0),
+			want:   *domain.NewGaugeMetric("testMetric", 5.0),
 		},
 	}
 	for _, tt := range tests {
@@ -34,26 +33,23 @@ func TestMemStorage_GetMetric(t *testing.T) {
 			m := &MemStorage{
 				storage: tt.fields.storage,
 			}
-			m.storage[tt.args.agentID] = make(map[string]domain.Metrics)
+			m.storage[tt.args.agentID] = make(map[string]*domain.Metrics)
 			m.storage[tt.args.agentID][tt.args.metricName] = domain.NewGaugeMetric("testMetric", 5.0)
 			got, got1 := m.GetMetric(tt.args.agentID, tt.args.metricName)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetMetric() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("GetMetric() got1 = %v, want %v", got1, tt.want1)
-			}
+
+			assert.Equal(t, *got, tt.want)
+			assert.Equal(t, got1, tt.want1)
 		})
 	}
 }
 
 func TestMemStorage_WriteMetric(t *testing.T) {
 	type fields struct {
-		storage map[string]map[string]domain.Metrics
+		storage map[string]map[string]*domain.Metrics
 	}
 	type args struct {
 		agentID string
-		metric  domain.Metrics
+		metric  *domain.Metrics
 	}
 	tests := []struct {
 		name   string
@@ -84,14 +80,13 @@ func TestNewMemStorage(t *testing.T) {
 	}{
 		{
 			name: "test new storage",
-			want: &MemStorage{storage: make(map[string]map[string]domain.Metrics)},
+			want: &MemStorage{storage: make(map[string]map[string]*domain.Metrics)},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewMemStorage(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewMemStorage() = %v, want %v", got, tt.want)
-			}
+			got := NewMemStorage()
+			assert.Equal(t, got, tt.want)
 		})
 	}
 }
