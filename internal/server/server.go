@@ -15,9 +15,9 @@ func New() Server {
 	return Server{}
 }
 
-func (s *Server) Run(port string, r *chi.Mux) error {
+func (s *Server) Run(serverAddr string, r *chi.Mux) error {
 	s.httpServer = &http.Server{
-		Addr:           ":" + port,
+		Addr:           serverAddr,
 		MaxHeaderBytes: 1 << 20, // 1MB
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
