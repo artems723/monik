@@ -64,5 +64,15 @@ func (s Service) GetAllMetrics(agentID string) (map[string]*domain.Metrics, erro
 	return s.storage.GetAllMetrics(agentID)
 }
 
+func (s Service) WriteMetrics(metrics []*domain.Metrics) error {
+	for metric := range metrics {
+		err := s.WriteMetric(metrics)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 var ErrMTypeMismatch = errors.New("metric type mismatch")
 var ErrNoValue = errors.New("no value")
