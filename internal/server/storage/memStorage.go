@@ -9,9 +9,9 @@ type MemStorage struct {
 	storage map[string]*domain.Metrics
 }
 
-func NewMemStorage() *MemStorage {
+func NewMemStorage() MemStorage {
 	storage := make(map[string]*domain.Metrics)
-	return &MemStorage{storage: storage}
+	return MemStorage{storage: storage}
 }
 
 func (m *MemStorage) GetMetric(metricName string) (*domain.Metrics, error) {

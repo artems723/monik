@@ -11,8 +11,8 @@ type Service struct {
 	storage storage.Repository
 }
 
-func New(s storage.Repository) *Service {
-	return &Service{storage: s}
+func New(s storage.Repository) Service {
+	return Service{storage: s}
 }
 
 func (s *Service) WriteMetric(metric *domain.Metrics) error {

@@ -1,8 +1,11 @@
-package server
+package service
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/artems723/monik/internal/server/domain"
+	"github.com/artems723/monik/internal/server/storage"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -12,10 +15,11 @@ type Store struct {
 	file    *os.File
 	encoder *json.Encoder
 	decoder *json.Decoder
+	storage storage.Repository
 }
 
-func NewStore(fileName string) (*Store, error) {
-	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+func NewStoreService(fileName string, storage storage.Repository) (*Store, error) {
+	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 	if err != nil {
 		return nil, err
 	}
@@ -23,6 +27,7 @@ func NewStore(fileName string) (*Store, error) {
 		file:    file,
 		encoder: json.NewEncoder(file),
 		decoder: json.NewDecoder(file),
+		storage: storage,
 	}, nil
 }
 
@@ -30,7 +35,8 @@ func (s *Store) Close() error {
 	return s.file.Close()
 }
 
-func (s *Store) Run(storeInterval time.Duration) error {
+func (s *Store) Run(storeInterval time.Duration, storeFile string, restore bool) error {
+
 	// infinite loop for polling counters and sending it to server
 	storeIntervalTicker := time.NewTicker(storeInterval)
 	for {
@@ -50,8 +56,11 @@ func (s *Store) ReadMetrics() ([]*domain.Metrics, error) {
 	metrics := make([]*domain.Metrics, 30)
 	// read open bracket
 	_, err := s.decoder.Token()
+	if err == io.EOF {
+		return nil, ErrEmptyFile
+	}
 	if err != nil {
-		log.Fatal(err)
+		return nil, errors.New("error reading file")
 	}
 	// while the array contains values
 	for s.decoder.More() {
@@ -71,3 +80,5 @@ func (s *Store) ReadMetrics() ([]*domain.Metrics, error) {
 	}
 	return metrics, nil
 }
+
+var ErrEmptyFile = errors.New("no file or empty file")

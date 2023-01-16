@@ -13,8 +13,9 @@ import (
 type config struct {
 	Address       string        `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
 	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"3s"`
-	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
-	Restore       bool          `env:"RESTORE" envDefault:"true"`
+	//StoreFile     string        `env:"STORE_FILE" envDefault:""`
+	StoreFile string `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
+	Restore   bool   `env:"RESTORE" envDefault:"true"`
 }
 
 func main() {
@@ -28,24 +29,31 @@ func main() {
 	// Create storage
 	repo := storage.NewMemStorage()
 	// Create service
-	serv := service.New(repo)
+	serv := service.New(&repo)
 	// Create handler
-	h := handler.New(serv)
+	h := handler.New(&serv)
 	// Create server
 	srv := server.New()
+
 	// Create store
-	//store, err := server.NewStore(cfg.StoreFile)
-	//if err != nil {
-	//	log.Fatalf("error occured while creating store: %s", err.Error())
-	//}
-	//metrics, err := store.ReadMetrics()
-	//if err != nil {
-	//	log.Fatalf("error occured while reading metrics from file: %s", err.Error())
-	//}
-	//err = serv.WriteMetrics(metrics)
-	//if err != nil {
-	//	log.Fatalf("error occured while writing metrics to storage: %s", err.Error())
-	//}
+	if cfg.StoreFile != "" {
+		store, err := service.NewStoreService(cfg.StoreFile, &repo)
+		if err != nil {
+			log.Fatalf("error occured while creating store: %s", err.Error())
+		}
+		// Read metrics from file to storage
+		if cfg.Restore {
+			metrics, err := store.ReadMetrics()
+			if err != nil {
+				log.Fatalf("error occured while reading metrics from file: %s", err.Error())
+			}
+			err = serv.WriteMetrics(metrics)
+			if err != nil {
+				log.Fatalf("error occured while writing metrics to storage: %s", err.Error())
+			}
+		}
+	}
+
 	// Start http server
 	err = srv.Run(cfg.Address, h.InitRoutes())
 	if err != nil {
