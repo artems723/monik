@@ -14,8 +14,7 @@ import (
 
 func TestHandler_mainPage(t *testing.T) {
 	type fields struct {
-		s  service.Service
-		id string
+		s service.Service
 	}
 	type want struct {
 		contentType string
@@ -49,10 +48,7 @@ func TestHandler_mainPage(t *testing.T) {
 
 			// add metric to storage
 			metric := domain.NewGaugeMetric(tt.want.metricName, tt.want.metricValue)
-			tt.fields.s.WriteMetric(tt.fields.id, metric)
-
-			// change remote address
-			tt.args.r.RemoteAddr = tt.fields.id
+			tt.fields.s.WriteMetric(metric)
 
 			// handler call
 			h.mainPage(tt.args.w, tt.args.r)

@@ -15,7 +15,7 @@ func New(s storage.Repository) Service {
 	return Service{storage: s}
 }
 
-func (s Service) WriteMetric(agentID string, metric *domain.Metrics) error {
+func (s Service) WriteMetric(metric *domain.Metrics) error {
 	// Check metric type
 	switch metric.MType {
 	case domain.MetricTypeGauge:
@@ -29,7 +29,7 @@ func (s Service) WriteMetric(agentID string, metric *domain.Metrics) error {
 			return ErrNoValue
 		}
 		// Get current metric from storage to sum deltas
-		m, err := s.storage.GetMetric(agentID, metric.ID)
+		m, err := s.storage.GetMetric(metric.ID)
 		// Check for errors
 		if err != nil && !errors.Is(err, storage.ErrNotFound) {
 			log.Printf("storage.GetMetric: %v", err)
@@ -48,25 +48,25 @@ func (s Service) WriteMetric(agentID string, metric *domain.Metrics) error {
 		return domain.ErrUnknownMetricType
 	}
 	// Write metric to storage
-	err := s.storage.WriteMetric(agentID, metric)
+	err := s.storage.WriteMetric(metric)
 	return err
 }
 
-func (s Service) GetMetric(agentID string, metric *domain.Metrics) (*domain.Metrics, error) {
-	curMetric, err := s.storage.GetMetric(agentID, metric.ID)
+func (s Service) GetMetric(metric *domain.Metrics) (*domain.Metrics, error) {
+	curMetric, err := s.storage.GetMetric(metric.ID)
 	if curMetric != nil && curMetric.MType != metric.MType {
 		return curMetric, ErrMTypeMismatch
 	}
 	return curMetric, err
 }
 
-func (s Service) GetAllMetrics(agentID string) (map[string]*domain.Metrics, error) {
-	return s.storage.GetAllMetrics(agentID)
+func (s Service) GetAllMetrics() (map[string]*domain.Metrics, error) {
+	return s.storage.GetAllMetrics()
 }
 
 func (s Service) WriteMetrics(metrics []*domain.Metrics) error {
-	for metric := range metrics {
-		err := s.WriteMetric(metrics)
+	for _, metric := range metrics {
+		err := s.WriteMetric(metric)
 		if err != nil {
 			return err
 		}

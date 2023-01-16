@@ -24,7 +24,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("Using config: Address: %s.", cfg.Address)
+	log.Printf("Using config: Address: %s", cfg.Address)
 	// Create storage
 	repo := storage.NewMemStorage()
 	// Create service
@@ -34,25 +34,25 @@ func main() {
 	// Create server
 	srv := server.New()
 	// Create store
-	store, err := server.NewStore(cfg.StoreFile)
-	if err != nil {
-		log.Fatalf("error occured while creating store: %s", err.Error())
-	}
-	metrics, err := store.ReadMetrics()
-	if err != nil {
-		log.Fatalf("error occured while reading metrics from file: %s", err.Error())
-	}
-	err = serv.WriteMetrics(metrics)
-	if err != nil {
-		log.Fatalf("error occured while writing metrics to storage: %s", err.Error())
-	}
+	//store, err := server.NewStore(cfg.StoreFile)
+	//if err != nil {
+	//	log.Fatalf("error occured while creating store: %s", err.Error())
+	//}
+	//metrics, err := store.ReadMetrics()
+	//if err != nil {
+	//	log.Fatalf("error occured while reading metrics from file: %s", err.Error())
+	//}
+	//err = serv.WriteMetrics(metrics)
+	//if err != nil {
+	//	log.Fatalf("error occured while writing metrics to storage: %s", err.Error())
+	//}
 	// Start http server
 	err = srv.Run(cfg.Address, h.InitRoutes())
 	if err != nil {
 		log.Fatalf("error occured while running http server: %s", err.Error())
 	}
 	// Start process of storing data to file
-	err = store.Run(cfg.StoreInterval)
+	//err = store.Run(cfg.StoreInterval)
 	if err != nil {
 		log.Fatalf("error occured while running store: %s", err.Error())
 	}

@@ -6,18 +6,15 @@ import (
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/go-chi/chi/v5"
 	"log"
-	"net"
 	"net/http"
 	"strconv"
 )
 
 func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
-	// Get client's IP address and use it as agentID
-	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
-	log.Printf("Got update request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s, metricValue: %s\n", r.Method, r.URL.Path, agentID, metricType, metricName, metricValue)
+	log.Printf("Got update request. Method=%s, Path: %s, metricType: %s, metricName: %s, metricValue: %s\n", r.Method, r.URL.Path, metricType, metricName, metricValue)
 	// Check if no metric name provided in the URL
 	if metricName == "" {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -51,7 +48,7 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Write metric to service
-	err := h.s.WriteMetric(agentID, metric)
+	err := h.s.WriteMetric(metric)
 	if err != nil && err != service.ErrMTypeMismatch && err != service.ErrNoValue {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -64,9 +61,6 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
-	// Get client's IP address and use it as agentID
-	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
-
 	var metric *domain.Metrics
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
@@ -79,9 +73,9 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	log.Printf("Got update JSON request. Method=%s, Path: %s, agentID: %s, metric: %v\n", r.Method, r.URL.Path, agentID, metric)
+	log.Printf("Got update JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metric)
 	// Write metric to service
-	err = h.s.WriteMetric(agentID, metric)
+	err = h.s.WriteMetric(metric)
 	if err != nil && err != service.ErrMTypeMismatch && err != service.ErrNoValue {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

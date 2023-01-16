@@ -8,10 +8,9 @@ import (
 
 func TestMemStorage_GetMetric(t *testing.T) {
 	type fields struct {
-		storage map[string]map[string]*domain.Metrics
+		storage map[string]*domain.Metrics
 	}
 	type args struct {
-		agentID    string
 		metricName string
 	}
 	tests := []struct {
@@ -24,7 +23,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 		{
 			name:   "test read",
 			fields: fields{storage: NewMemStorage().storage},
-			args:   args{agentID: "127.0.0.1", metricName: "testMetric"},
+			args:   args{metricName: "testMetric"},
 			want:   *domain.NewGaugeMetric("testMetric", 5.0),
 		},
 	}
@@ -33,9 +32,8 @@ func TestMemStorage_GetMetric(t *testing.T) {
 			m := &MemStorage{
 				storage: tt.fields.storage,
 			}
-			m.storage[tt.args.agentID] = make(map[string]*domain.Metrics)
-			m.storage[tt.args.agentID][tt.args.metricName] = domain.NewGaugeMetric("testMetric", 5.0)
-			got, got1 := m.GetMetric(tt.args.agentID, tt.args.metricName)
+			m.storage[tt.args.metricName] = domain.NewGaugeMetric("testMetric", 5.0)
+			got, got1 := m.GetMetric(tt.args.metricName)
 
 			assert.Equal(t, *got, tt.want)
 			assert.Equal(t, got1, tt.want1)
@@ -45,11 +43,10 @@ func TestMemStorage_GetMetric(t *testing.T) {
 
 func TestMemStorage_WriteMetric(t *testing.T) {
 	type fields struct {
-		storage map[string]map[string]*domain.Metrics
+		storage map[string]*domain.Metrics
 	}
 	type args struct {
-		agentID string
-		metric  *domain.Metrics
+		metric *domain.Metrics
 	}
 	tests := []struct {
 		name   string
@@ -59,7 +56,7 @@ func TestMemStorage_WriteMetric(t *testing.T) {
 		{
 			name:   "test write",
 			fields: fields{storage: NewMemStorage().storage},
-			args:   args{agentID: "127.0.0.1", metric: domain.NewGaugeMetric("testMetric", 5.0)},
+			args:   args{metric: domain.NewGaugeMetric("testMetric", 5.0)},
 		},
 	}
 	for _, tt := range tests {
@@ -67,8 +64,8 @@ func TestMemStorage_WriteMetric(t *testing.T) {
 			m := &MemStorage{
 				storage: tt.fields.storage,
 			}
-			m.WriteMetric(tt.args.agentID, tt.args.metric)
-			assert.Equal(t, m.storage[tt.args.agentID][tt.args.metric.ID], tt.args.metric)
+			m.WriteMetric(tt.args.metric)
+			assert.Equal(t, m.storage[tt.args.metric.ID], tt.args.metric)
 		})
 	}
 }
@@ -80,7 +77,7 @@ func TestNewMemStorage(t *testing.T) {
 	}{
 		{
 			name: "test new storage",
-			want: &MemStorage{storage: make(map[string]map[string]*domain.Metrics)},
+			want: &MemStorage{storage: make(map[string]*domain.Metrics)},
 		},
 	}
 	for _, tt := range tests {

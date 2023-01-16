@@ -19,7 +19,6 @@ import (
 func TestHandler_getValue(t *testing.T) {
 	type fields struct {
 		s          service.Service
-		id         string
 		valGauge   float64
 		valCounter int64
 	}
@@ -78,10 +77,7 @@ func TestHandler_getValue(t *testing.T) {
 				metric = domain.NewCounterMetric(tt.urlParams.metricName, tt.fields.valCounter)
 			}
 
-			tt.fields.s.WriteMetric(tt.fields.id, metric)
-
-			// change remote address
-			tt.args.r.RemoteAddr = tt.fields.id
+			tt.fields.s.WriteMetric(metric)
 
 			// handler call
 			h.getValue(tt.args.w, tt.args.r)
@@ -112,7 +108,6 @@ func TestHandler_getValueJSON(t *testing.T) {
 		r           *http.Request
 		contentType string
 		metric      *domain.Metrics
-		id          string
 	}
 	tests := []struct {
 		name   string
@@ -143,12 +138,10 @@ func TestHandler_getValueJSON(t *testing.T) {
 			}
 
 			// add metric to storage
-			tt.fields.s.WriteMetric(tt.args.id, tt.args.metric)
+			tt.fields.s.WriteMetric(tt.args.metric)
 
 			// Set content-type
 			tt.args.r.Header.Set("Content-Type", tt.args.contentType)
-			// change remote address
-			tt.args.r.RemoteAddr = tt.args.id
 			// Run handler
 			h.getValueJSON(tt.args.w, tt.args.r)
 			// Get response

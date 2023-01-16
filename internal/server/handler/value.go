@@ -8,19 +8,16 @@ import (
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
 	"log"
-	"net"
 	"net/http"
 	"strconv"
 )
 
 func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
-	// Get client's IP address and use it as agentID
-	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
-	log.Printf("Got get value request. Method=%s, Path: %s, agentID: %s, metricType: %s, metricName: %s\n", r.Method, r.URL.Path, agentID, metricType, metricName)
+	log.Printf("Got get value request. Method=%s, Path: %s, metricType: %s, metricName: %s\n", r.Method, r.URL.Path, metricType, metricName)
 	// Get metric from service
-	metric, err := h.s.GetMetric(agentID, domain.NewMetric(metricName, metricType))
+	metric, err := h.s.GetMetric(domain.NewMetric(metricName, metricType))
 	// Check for errors
 	if err != nil && !errors.Is(err, storage.ErrNotFound) && !errors.Is(err, service.ErrMTypeMismatch) {
 		log.Printf("storage.GetMetric: %v", err)
@@ -44,14 +41,15 @@ func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, domain.ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
-	w.Write([]byte(str))
+	_, err = w.Write([]byte(str))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
-	// Get client's IP address and use it as agentID
-	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
-
 	var metric *domain.Metrics
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
@@ -64,9 +62,9 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	log.Printf("Got get value JSON request. Method=%s, Path: %s, agentID: %s, metric: %v\n", r.Method, r.URL.Path, agentID, metric)
+	log.Printf("Got get value JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metric)
 	// Get metric from service
-	res, err := h.s.GetMetric(agentID, metric)
+	res, err := h.s.GetMetric(metric)
 	// Check for errors
 	if err != nil && !errors.Is(err, storage.ErrNotFound) && !errors.Is(err, service.ErrMTypeMismatch) {
 		log.Printf("storage.GetMetric: %v", err)

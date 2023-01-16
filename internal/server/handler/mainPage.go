@@ -6,16 +6,13 @@ import (
 	"fmt"
 	"github.com/artems723/monik/internal/server/storage"
 	"log"
-	"net"
 	"net/http"
 )
 
 func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
-	// Get client's IP address and use it as agentID
-	agentID, _, _ := net.SplitHostPort(r.RemoteAddr)
-	log.Printf("Got main page request. Method=%s, Path: %s, agentID: %s\n", r.Method, r.URL.Path, agentID)
+	log.Printf("Got main page request. Method=%s, Path: %s", r.Method, r.URL.Path)
 	// Get all metrics from storage
-	allMetrics, err := h.s.GetAllMetrics(agentID)
+	allMetrics, err := h.s.GetAllMetrics()
 	// Check for errors
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		log.Printf("storage.GetMetric: %v", err)
@@ -31,6 +28,10 @@ func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 	for key, value := range allMetrics {
 		fmt.Fprintf(b, "%s=\"%v\"\n", key, value.String())
 	}
-	w.Write(b.Bytes())
+	_, err = w.Write(b.Bytes())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
