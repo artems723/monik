@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"github.com/artems723/monik/internal/server/domain"
@@ -12,10 +13,11 @@ import (
 )
 
 type Store struct {
-	file    *os.File
-	encoder *json.Encoder
-	decoder *json.Decoder
-	repo    storage.Repository
+	file     *os.File
+	fileName string
+	encoder  *json.Encoder
+	decoder  *json.Decoder
+	repo     storage.Repository
 }
 
 func NewStore(fileName string, storage storage.Repository) (*Store, error) {
@@ -24,15 +26,22 @@ func NewStore(fileName string, storage storage.Repository) (*Store, error) {
 		return nil, err
 	}
 	return &Store{
-		file:    file,
-		encoder: json.NewEncoder(file),
-		decoder: json.NewDecoder(file),
-		repo:    storage,
+		file:     file,
+		fileName: fileName,
+		encoder:  json.NewEncoder(file),
+		decoder:  json.NewDecoder(file),
+		repo:     storage,
 	}, nil
 }
 
 func (s *Store) Close() error {
-	return s.file.Close()
+	err := s.WriteMetrics()
+	if err != nil {
+		log.Printf("error occured while dumping data to file: %v", err)
+		return err
+	}
+	log.Printf("stored before shutdown")
+	return nil
 }
 
 func (s *Store) Init(restore bool) {
@@ -43,11 +52,12 @@ func (s *Store) Init(restore bool) {
 			log.Printf("error occured while reading metrics from file: %v", err)
 			return
 		}
-		err = s.WriteMetrics(metrics)
+		err = s.repo.WriteAllMetrics(metrics)
 		if err != nil {
 			log.Printf("error occured while writing metrics to storage: %v", err)
 			return
 		}
+		log.Printf("The following metrics were loaded from file: %v", metrics)
 	}
 }
 
@@ -57,11 +67,7 @@ func (s *Store) Run(storeInterval time.Duration) {
 	for {
 		select {
 		case <-storeIntervalTicker.C:
-			metrics, err := s.repo.GetAllMetrics()
-			if err != nil {
-				log.Printf("GetAllMetrics(), error: %v", err)
-			}
-			err = s.WriteMetrics(metrics)
+			err := s.WriteMetrics()
 			if err != nil {
 				log.Printf("error occured while dumping data to file: %v", err)
 				return
@@ -71,21 +77,64 @@ func (s *Store) Run(storeInterval time.Duration) {
 	}
 }
 
-func (s *Store) WriteMetrics(metrics *domain.Metrics) error {
-	return s.encoder.Encode(&metrics)
+func (s *Store) WriteMetrics() error {
+	metrics, err := s.repo.GetAllMetrics()
+	if err != nil {
+		log.Printf("GetAllMetrics(), error: %v", err)
+		return err
+	}
+	return s.encoder.Encode(metrics)
 }
 
 func (s *Store) ReadMetrics() (*domain.Metrics, error) {
 	// read our opened jsonFile as a byte array.
-	byteValue, _ := io.ReadAll(s.file)
+	//byteValue, _ := io.ReadAll(s.file)
+
+	byteValue, err := s.readLastLine()
+	if err != nil {
+		return nil, errors.New("error reading last line of the file: " + err.Error())
+	}
 
 	var metrics domain.Metrics
 
-	err := json.Unmarshal(byteValue, &metrics)
+	err = json.Unmarshal(byteValue, &metrics)
 	if err != nil {
 		return nil, err
 	}
 	return &metrics, nil
 }
 
-var ErrEmptyFile = errors.New("no file or empty file")
+func (s *Store) readLastLine() ([]byte, error) {
+
+	reader := bufio.NewReader(s.file)
+
+	// calculate the size of the last line
+	var lastLineSize int
+	for {
+		line, _, err := reader.ReadLine()
+		if err == io.EOF {
+			break
+		}
+		lastLineSize = len(line)
+	}
+	// check if file is empty
+	if lastLineSize == 0 {
+		return nil, ErrEmptyFile
+	}
+	fileInfo, err := os.Stat(s.fileName)
+	if err != nil {
+		return nil, err
+	}
+	// +1 to compensate for the initial 0 byte of the line
+	buffer := make([]byte, lastLineSize)
+	// read file from certain offset
+	offset := fileInfo.Size() - int64(lastLineSize+1)
+	numRead, err := s.file.ReadAt(buffer, offset)
+	if err != nil {
+		return nil, err
+	}
+	buffer = buffer[:numRead]
+	return buffer, nil
+}
+
+var ErrEmptyFile = errors.New("file is empty")

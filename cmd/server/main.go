@@ -6,7 +6,12 @@ import (
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/caarlos0/env/v6"
+	"golang.org/x/net/context"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -14,7 +19,7 @@ type config struct {
 	Address       string        `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
 	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"3s"`
 	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
-	Restore       bool          `env:"RESTORE" envDefault:"false"`
+	Restore       bool          `env:"RESTORE" envDefault:"true"`
 }
 
 func main() {
@@ -35,8 +40,9 @@ func main() {
 	srv := server.New()
 
 	// Create store
+	var store *service.Store
 	if cfg.StoreFile != "" {
-		store, err := service.NewStore(cfg.StoreFile, repo)
+		store, err = service.NewStore(cfg.StoreFile, repo)
 		if err != nil {
 			log.Printf("service.NewStore, error creating Store: %v", err)
 		}
@@ -46,9 +52,30 @@ func main() {
 		go store.Run(cfg.StoreInterval)
 	}
 
+	// create channel for graceful shutdown
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
 	// Start http server
-	err = srv.Run(cfg.Address, h.InitRoutes())
+	go func() {
+		err = srv.Run(cfg.Address, h.InitRoutes())
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("srv.Run, error occured while running http server: %v", err)
+		}
+	}()
+	log.Printf("Server started")
+
+	<-done
+	// Close store
+	err = store.Close()
 	if err != nil {
-		log.Fatalf("srv.Run, error occured while running http server: %v", err)
+		log.Printf("Error closing store: %v", err)
 	}
+
+	// Shutdown http server
+	err = srv.Shutdown(context.Background())
+	if err != nil {
+		log.Fatalf("Server shutdown Failed:%+v", err)
+	}
+	log.Print("Server stopped properly")
 }

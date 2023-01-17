@@ -9,6 +9,7 @@ type Repository interface {
 	GetMetric(metricName string) (*domain.Metric, error)
 	WriteMetric(metric *domain.Metric) error
 	GetAllMetrics() (*domain.Metrics, error)
+	WriteAllMetrics(*domain.Metrics) error
 }
 
 var ErrNotFound = errors.New("not found")

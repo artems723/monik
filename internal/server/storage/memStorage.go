@@ -36,3 +36,10 @@ func (m *MemStorage) GetAllMetrics() (*domain.Metrics, error) {
 	}
 	return &domain.Metrics{Metrics: values}, nil
 }
+
+func (m *MemStorage) WriteAllMetrics(metrics *domain.Metrics) error {
+	for _, v := range metrics.Metrics {
+		m.s[v.ID] = v
+	}
+	return nil
+}
