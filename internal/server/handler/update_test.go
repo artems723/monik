@@ -40,28 +40,28 @@ func TestHandler_updateMetric(t *testing.T) {
 	}{
 		{
 			name:      "test 200 code",
-			fields:    fields{service.New(storage.NewMemStorage())},
+			fields:    fields{*service.New(storage.NewMemStorage())},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"", 200},
 			urlParams: urlParams{"counter", "name", "2"},
 		},
 		{
 			name:      "test 400 code",
-			fields:    fields{service.New(storage.NewMemStorage())},
+			fields:    fields{*service.New(storage.NewMemStorage())},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"text/plain; charset=utf-8", 400},
 			urlParams: urlParams{"counter", "name", ""},
 		},
 		{
 			name:      "test 200 code",
-			fields:    fields{service.New(storage.NewMemStorage())},
+			fields:    fields{*service.New(storage.NewMemStorage())},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"", 200},
 			urlParams: urlParams{"gauge", "name", "2"},
 		},
 		{
 			name:      "test 400 code",
-			fields:    fields{service.New(storage.NewMemStorage())},
+			fields:    fields{*service.New(storage.NewMemStorage())},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"text/plain; charset=utf-8", 400},
 			urlParams: urlParams{"gauge", "name", ""},
@@ -70,7 +70,7 @@ func TestHandler_updateMetric(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &Handler{
-				s: tt.fields.s,
+				s: &tt.fields.s,
 			}
 			rctx := chi.NewRouteContext()
 			rctx.URLParams.Add("metricType", tt.urlParams.metricType)
@@ -111,7 +111,7 @@ func TestHandler_updateMetricJSON(t *testing.T) {
 	}{
 		{
 			name:   "test success path",
-			fields: fields{s: service.New(storage.NewMemStorage())},
+			fields: fields{s: *service.New(storage.NewMemStorage())},
 			want: want{
 				contentType: "application/json",
 				statusCode:  200,
@@ -128,7 +128,7 @@ func TestHandler_updateMetricJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &Handler{
-				s: tt.fields.s,
+				s: &tt.fields.s,
 			}
 			// Set content-type
 			tt.args.r.Header.Set("Content-Type", tt.args.contentType)

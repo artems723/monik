@@ -72,7 +72,6 @@ func (s *Store) Run(storeInterval time.Duration) {
 }
 
 func (s *Store) WriteMetrics(metrics *domain.Metrics) error {
-	// TODO: check
 	return s.encoder.Encode(&metrics)
 }
 

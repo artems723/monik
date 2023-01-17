@@ -41,14 +41,14 @@ func (m Metric) String() string {
 	switch m.MType {
 	case MetricTypeGauge:
 		if m.Value != nil {
-			return fmt.Sprintf("ID: %s, Mtype: %s, Value: %f", m.ID, m.MType, *m.Value)
+			return fmt.Sprintf("Name: %s, Type: %s, Value: %f", m.ID, m.MType, *m.Value)
 		}
 	case MetricTypeCounter:
 		if m.Delta != nil {
-			return fmt.Sprintf("ID: %s, Mtype: %s, Delta: %d", m.ID, m.MType, *m.Delta)
+			return fmt.Sprintf("Name: %s, Type: %s, Delta: %d", m.ID, m.MType, *m.Delta)
 		}
 	}
-	return fmt.Sprintf("ID: %s, Mtype: %s", m.ID, m.MType)
+	return fmt.Sprintf("Name: %s, Type: %s", m.ID, m.MType)
 }
 
 func (t *MetricType) UnmarshalJSON(data []byte) error {

@@ -44,14 +44,14 @@ func TestHandler_getValue(t *testing.T) {
 	}{
 		{
 			name:      "test get gauge value",
-			fields:    fields{s: service.New(storage.NewMemStorage()), valGauge: 20.201},
+			fields:    fields{s: *service.New(storage.NewMemStorage()), valGauge: 20.201},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
 			want:      want{"text/plain; charset=utf-8", 200, "20.201"},
 			urlParams: urlParams{"gauge", "Alloc"},
 		},
 		{
 			name:      "test get counter value",
-			fields:    fields{s: service.New(storage.NewMemStorage()), valCounter: 20},
+			fields:    fields{s: *service.New(storage.NewMemStorage()), valCounter: 20},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
 			want:      want{"text/plain; charset=utf-8", 200, "20"},
 			urlParams: urlParams{"counter", "PollCount"},
@@ -60,7 +60,7 @@ func TestHandler_getValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &Handler{
-				s: tt.fields.s,
+				s: &tt.fields.s,
 			}
 			rctx := chi.NewRouteContext()
 			rctx.URLParams.Add("metricType", tt.urlParams.metricType)
@@ -117,7 +117,7 @@ func TestHandler_getValueJSON(t *testing.T) {
 	}{
 		{
 			name:   "test success path",
-			fields: fields{s: service.New(storage.NewMemStorage())},
+			fields: fields{s: *service.New(storage.NewMemStorage())},
 			want: want{
 				contentType: "application/json",
 				statusCode:  200,
@@ -134,7 +134,7 @@ func TestHandler_getValueJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &Handler{
-				s: tt.fields.s,
+				s: &tt.fields.s,
 			}
 
 			// add metric to storage
