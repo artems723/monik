@@ -66,16 +66,15 @@ func main() {
 	log.Printf("Server started")
 
 	<-done
-	// Close store
-	err = store.Close()
-	if err != nil {
-		log.Printf("Error closing store: %v", err)
-	}
-
 	// Shutdown http server
 	err = srv.Shutdown(context.Background())
 	if err != nil {
 		log.Fatalf("Server shutdown Failed:%+v", err)
+	}
+	// Close store
+	err = store.Close()
+	if err != nil {
+		log.Fatalf("Error closing store: %v", err)
 	}
 	log.Print("Server stopped properly")
 }

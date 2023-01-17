@@ -40,7 +40,7 @@ func (s *Store) Close() error {
 		log.Printf("error occured while dumping data to file: %v", err)
 		return err
 	}
-	log.Printf("stored before shutdown")
+	log.Printf("Stored to file before shutdown")
 	return nil
 }
 
@@ -72,7 +72,7 @@ func (s *Store) Run(storeInterval time.Duration) {
 				log.Printf("error occured while dumping data to file: %v", err)
 				return
 			}
-			log.Printf("stored")
+			log.Printf("Stored to file")
 		}
 	}
 }
