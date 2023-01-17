@@ -6,16 +6,16 @@ import (
 )
 
 type MemStorage struct {
-	storage map[string]*domain.Metric
+	Storage map[string]*domain.Metric
 }
 
 func NewMemStorage() MemStorage {
 	storage := make(map[string]*domain.Metric)
-	return MemStorage{storage: storage}
+	return MemStorage{Storage: storage}
 }
 
 func (m *MemStorage) GetMetric(metricName string) (*domain.Metric, error) {
-	currentVal, ok := m.storage[metricName]
+	currentVal, ok := m.Storage[metricName]
 	if !ok {
 		return nil, ErrNotFound
 	}
@@ -24,11 +24,16 @@ func (m *MemStorage) GetMetric(metricName string) (*domain.Metric, error) {
 
 func (m *MemStorage) WriteMetric(metric *domain.Metric) error {
 	// add metric to storage
-	m.storage[metric.ID] = metric
+	m.Storage[metric.ID] = metric
 	log.Printf("Storage was updated with metric: %v", metric)
 	return nil
 }
 
-func (m *MemStorage) GetAllMetrics() (map[string]*domain.Metric, error) {
-	return m.storage, nil
+func (m *MemStorage) GetAllMetrics() (*domain.Metrics, error) {
+	values := make([]*domain.Metric, 0, len(m.Storage))
+
+	for _, v := range m.Storage {
+		values = append(values, v)
+	}
+	return &domain.Metrics{Metrics: values}, nil
 }

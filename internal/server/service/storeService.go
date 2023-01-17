@@ -15,10 +15,10 @@ type Store struct {
 	file    *os.File
 	encoder *json.Encoder
 	decoder *json.Decoder
-	storage storage.Repository
+	repo    storage.Repository
 }
 
-func NewStoreService(fileName string, storage storage.Repository) (*Store, error) {
+func NewStore(fileName string, storage storage.Repository) (*Store, error) {
 	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func NewStoreService(fileName string, storage storage.Repository) (*Store, error
 		file:    file,
 		encoder: json.NewEncoder(file),
 		decoder: json.NewDecoder(file),
-		storage: storage,
+		repo:    storage,
 	}, nil
 }
 
@@ -35,19 +35,43 @@ func (s *Store) Close() error {
 	return s.file.Close()
 }
 
-func (s *Store) Run(storeInterval time.Duration, storeFile string, restore bool) error {
-
-	// infinite loop for polling counters and sending it to server
-	storeIntervalTicker := time.NewTicker(storeInterval)
-	for {
-		select {
-		case <-storeIntervalTicker.C:
-			log.Printf("store")
+func (s *Store) Init(restore bool) {
+	// Read metrics from file to storage
+	if restore {
+		metrics, err := s.ReadMetrics()
+		if err != nil {
+			log.Printf("error occured while reading metrics from file: %v", err)
+			return
+		}
+		err = s.WriteMetrics(metrics)
+		if err != nil {
+			log.Printf("error occured while writing metrics to storage: %v", err)
+			return
 		}
 	}
 }
 
-func (s *Store) WriteMetrics(metrics domain.Metric) error {
+func (s *Store) Run(storeInterval time.Duration) {
+	// infinite loop for dumping data to file
+	storeIntervalTicker := time.NewTicker(storeInterval)
+	for {
+		select {
+		case <-storeIntervalTicker.C:
+			metrics, err := s.repo.GetAllMetrics()
+			if err != nil {
+				log.Printf("GetAllMetrics(), error: %v", err)
+			}
+			err = s.WriteMetrics(metrics)
+			if err != nil {
+				log.Printf("error occured while dumping data to file: %v", err)
+				return
+			}
+			log.Printf("stored")
+		}
+	}
+}
+
+func (s *Store) WriteMetrics(metrics *domain.Metrics) error {
 	// TODO: check
 	return s.encoder.Encode(&metrics)
 }

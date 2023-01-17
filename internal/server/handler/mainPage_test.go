@@ -28,27 +28,27 @@ func TestHandler_mainPage(t *testing.T) {
 		r *http.Request
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   want
+		name string
+		args args
+		want want
 	}{
 		{
-			name:   "test get value",
-			fields: fields{s: service.New(storage.NewMemStorage())},
-			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
-			want:   want{"text/plain; charset=utf-8", 200, "Alloc=\"ID: Alloc, Mtype: gauge, Value: 20.200000\"\n", "Alloc", 20.20},
+			name: "test get value",
+			args: args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
+			want: want{"text/plain; charset=utf-8", 200, "Alloc=\"ID: Alloc, Mtype: gauge, Value: 20.200000\"\n", "Alloc", 20.20},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &Handler{
-				s: tt.fields.s,
+				s: service.New(&storage.MemStorage{Storage: make(map[string]*domain.Metric)}),
 			}
 
 			// add metric to storage
 			metric := domain.NewGaugeMetric(tt.want.metricName, tt.want.metricValue)
-			tt.fields.s.WriteMetric(metric)
+			repo := storage.NewMemStorage()
+			serv := service.New(&repo)
+			serv.WriteMetric(metric)
 
 			// handler call
 			h.mainPage(tt.args.w, tt.args.r)

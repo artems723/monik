@@ -21,7 +21,7 @@ type Metric struct {
 }
 
 type Metrics struct {
-	Metrics []Metric `json:"metrics"`
+	Metrics []*Metric `json:"metrics"`
 }
 
 func NewGaugeMetric(id string, value float64) *Metric {

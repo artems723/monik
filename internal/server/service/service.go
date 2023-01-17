@@ -60,13 +60,13 @@ func (s *Service) GetMetric(metric *domain.Metric) (*domain.Metric, error) {
 	return curMetric, err
 }
 
-func (s *Service) GetAllMetrics() (map[string]*domain.Metric, error) {
+func (s *Service) GetAllMetrics() (*domain.Metrics, error) {
 	return s.storage.GetAllMetrics()
 }
 
 func (s *Service) WriteMetrics(metrics *domain.Metrics) error {
 	for _, metric := range metrics.Metrics {
-		err := s.WriteMetric(&metric)
+		err := s.WriteMetric(metric)
 		if err != nil {
 			return err
 		}
