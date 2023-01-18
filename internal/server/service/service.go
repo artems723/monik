@@ -106,15 +106,13 @@ func (s *Service) RunFileStorage(fileStorage *storage.FileStorage) {
 		// infinite loop for dumping data to file
 		storeIntervalTicker := time.NewTicker(s.config.StoreInterval)
 		for {
-			select {
-			case <-storeIntervalTicker.C:
-				err := s.WriteAllToFile()
-				if err != nil {
-					log.Printf("error occured while dumping data to file: %v", err)
-					return
-				}
-				log.Printf("Stored to file")
+			<-storeIntervalTicker.C
+			err := s.WriteAllToFile()
+			if err != nil {
+				log.Printf("error occured while dumping data to file: %v", err)
+				return
 			}
+			log.Printf("Stored to file")
 		}
 	}
 }
