@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/artems723/monik/internal/server"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
@@ -12,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestHandler_updateMetric(t *testing.T) {
@@ -40,28 +42,28 @@ func TestHandler_updateMetric(t *testing.T) {
 	}{
 		{
 			name:      "test 200 code",
-			fields:    fields{*service.New(storage.NewMemStorage())},
+			fields:    fields{*service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"", 200},
 			urlParams: urlParams{"counter", "name", "2"},
 		},
 		{
 			name:      "test 400 code",
-			fields:    fields{*service.New(storage.NewMemStorage())},
+			fields:    fields{*service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"text/plain; charset=utf-8", 400},
 			urlParams: urlParams{"counter", "name", ""},
 		},
 		{
 			name:      "test 200 code",
-			fields:    fields{*service.New(storage.NewMemStorage())},
+			fields:    fields{*service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"", 200},
 			urlParams: urlParams{"gauge", "name", "2"},
 		},
 		{
 			name:      "test 400 code",
-			fields:    fields{*service.New(storage.NewMemStorage())},
+			fields:    fields{*service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/{metricType}/{metricName}/{metricValue}", nil)},
 			want:      want{"text/plain; charset=utf-8", 400},
 			urlParams: urlParams{"gauge", "name", ""},
@@ -111,7 +113,7 @@ func TestHandler_updateMetricJSON(t *testing.T) {
 	}{
 		{
 			name:   "test success path",
-			fields: fields{s: *service.New(storage.NewMemStorage())},
+			fields: fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
 			want: want{
 				contentType: "application/json",
 				statusCode:  200,

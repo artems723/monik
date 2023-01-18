@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/artems723/monik/internal/server"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestHandler_mainPage(t *testing.T) {
@@ -34,7 +36,7 @@ func TestHandler_mainPage(t *testing.T) {
 		want   want
 	}{
 		{
-			fields: fields{s: *service.New(storage.NewMemStorage())},
+			fields: fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
 			name:   "test get value",
 			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
 			want:   want{"text/plain; charset=utf-8", 200, "Name: Alloc, Type: gauge, Value: 20.200000\n", "Alloc", 20.20},
