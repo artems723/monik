@@ -5,10 +5,12 @@ import (
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/storage"
 	"log"
+	"time"
 )
 
 type Service struct {
-	storage storage.Repository
+	storage  storage.Repository
+	fStorage storage.Repository
 }
 
 func New(s storage.Repository) *Service {
@@ -71,6 +73,64 @@ func (s *Service) WriteMetrics(metrics *domain.Metrics) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (s *Service) RunFileStorage(fileStorage storage.Repository, restore bool, storeInterval time.Duration) {
+	// Read metrics from file to storage
+	s.fStorage = fileStorage
+	if restore {
+		metrics, err := s.fStorage.GetAllMetrics()
+		if err != nil {
+			log.Printf("error occured while reading metrics from file: %v", err)
+			return
+		}
+		err = s.storage.WriteAllMetrics(metrics)
+		if err != nil {
+			log.Printf("error occured while writing metrics to storage: %v", err)
+			return
+		}
+		log.Printf("The following metrics were loaded from file: %v", metrics)
+	}
+
+	// infinite loop for dumping data to file
+	storeIntervalTicker := time.NewTicker(storeInterval)
+	for {
+		select {
+		case <-storeIntervalTicker.C:
+			err := s.WriteAllToFile()
+			if err != nil {
+				log.Printf("error occured while dumping data to file: %v", err)
+				return
+			}
+			log.Printf("Stored to file")
+		}
+	}
+}
+
+func (s *Service) WriteAllToFile() error {
+	// Read all metrics from storage
+	metrics, err := s.storage.GetAllMetrics()
+	if err != nil {
+		log.Printf("error occured while reading all metrics from storage: %v", err)
+		return err
+	}
+	// Write all metrics to file
+	err = s.fStorage.WriteAllMetrics(metrics)
+	if err != nil {
+		log.Printf("error occured while dumping data to file: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (s *Service) Shutdown() error {
+	err := s.WriteAllToFile()
+	if err != nil {
+		log.Printf("error occured while dumping data to file: %v", err)
+		return err
+	}
+	log.Printf("Stored to file before shutdown")
 	return nil
 }
 

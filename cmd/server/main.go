@@ -34,23 +34,16 @@ func main() {
 	repo := storage.NewMemStorage()
 	// Create service
 	serv := service.New(repo)
+
+	if cfg.StoreFile != "" {
+		fileRepo := storage.NewFileStorage(cfg.StoreFile)
+		go serv.RunFileStorage(fileRepo, cfg.Restore, cfg.StoreInterval)
+	}
+
 	// Create handler
 	h := handler.New(serv)
 	// Create server
 	srv := server.New()
-
-	// Create store
-	var store *service.Store
-	if cfg.StoreFile != "" {
-		store, err = service.NewStore(cfg.StoreFile, repo)
-		if err != nil {
-			log.Printf("service.NewStore, error creating Store: %v", err)
-		}
-		// Lead data from file to storage
-		store.Init(cfg.Restore)
-		//Start process of storing data to file
-		go store.Run(cfg.StoreInterval)
-	}
 
 	// create channel for graceful shutdown
 	done := make(chan os.Signal, 1)
@@ -71,10 +64,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Server shutdown Failed:%+v", err)
 	}
-	// Close store
-	err = store.Close()
+	err = serv.Shutdown()
 	if err != nil {
-		log.Fatalf("Error closing store: %v", err)
+		log.Fatalf("serv.Shutdown: %v", err)
 	}
 	log.Print("Server stopped properly")
 }
