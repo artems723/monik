@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/artems723/monik/internal/server"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/storage"
 	"log"
@@ -11,10 +12,11 @@ import (
 type Service struct {
 	storage  storage.Repository
 	fStorage storage.Repository
+	config   server.Config
 }
 
-func New(s storage.Repository) *Service {
-	return &Service{storage: s}
+func New(s storage.Repository, c server.Config) *Service {
+	return &Service{storage: s, config: c}
 }
 
 func (s *Service) WriteMetric(metric *domain.Metric) error {
@@ -76,10 +78,10 @@ func (s *Service) WriteMetrics(metrics *domain.Metrics) error {
 	return nil
 }
 
-func (s *Service) RunFileStorage(fileStorage storage.Repository, restore bool, storeInterval time.Duration) {
+func (s *Service) RunFileStorage(fileStorage *storage.FileStorage) {
 	// Read metrics from file to storage
 	s.fStorage = fileStorage
-	if restore {
+	if s.config.Restore {
 		metrics, err := s.fStorage.GetAllMetrics()
 		if err != nil {
 			log.Printf("error occured while reading metrics from file: %v", err)
@@ -93,17 +95,19 @@ func (s *Service) RunFileStorage(fileStorage storage.Repository, restore bool, s
 		log.Printf("The following metrics were loaded from file: %v", metrics)
 	}
 
-	// infinite loop for dumping data to file
-	storeIntervalTicker := time.NewTicker(storeInterval)
-	for {
-		select {
-		case <-storeIntervalTicker.C:
-			err := s.WriteAllToFile()
-			if err != nil {
-				log.Printf("error occured while dumping data to file: %v", err)
-				return
+	if s.config.StoreInterval > 0*time.Second {
+		// infinite loop for dumping data to file
+		storeIntervalTicker := time.NewTicker(s.config.StoreInterval)
+		for {
+			select {
+			case <-storeIntervalTicker.C:
+				err := s.WriteAllToFile()
+				if err != nil {
+					log.Printf("error occured while dumping data to file: %v", err)
+					return
+				}
+				log.Printf("Stored to file")
 			}
-			log.Printf("Stored to file")
 		}
 	}
 }

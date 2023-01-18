@@ -12,19 +12,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
-
-type config struct {
-	Address       string        `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
-	StoreInterval time.Duration `env:"STORE_INTERVAL" envDefault:"3s"`
-	StoreFile     string        `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
-	Restore       bool          `env:"RESTORE" envDefault:"true"`
-}
 
 func main() {
 	// Create and read config
-	cfg := config{}
+	cfg := server.Config{}
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatalf("error parsing config file: %v", err)
@@ -33,11 +25,11 @@ func main() {
 	// Create storage
 	repo := storage.NewMemStorage()
 	// Create service
-	serv := service.New(repo)
+	serv := service.New(repo, cfg)
 
 	if cfg.StoreFile != "" {
 		fileRepo := storage.NewFileStorage(cfg.StoreFile)
-		go serv.RunFileStorage(fileRepo, cfg.Restore, cfg.StoreInterval)
+		go serv.RunFileStorage(fileRepo)
 	}
 
 	// Create handler
