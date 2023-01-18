@@ -53,6 +53,13 @@ func (s *Service) WriteMetric(metric *domain.Metric) error {
 	}
 	// Write metric to storage
 	err := s.storage.WriteMetric(metric)
+	// Write metric to file if storeInterval == 0s
+	if s.config.StoreInterval == 0*time.Second {
+		err1 := s.fStorage.WriteMetric(metric)
+		if err1 != nil {
+			log.Printf("Error writing metric to file: %v", err1)
+		}
+	}
 	return err
 }
 
