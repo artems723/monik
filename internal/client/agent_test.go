@@ -10,7 +10,7 @@ import (
 
 func TestAgent_SendData(t *testing.T) {
 	type fields struct {
-		storage map[string]*Metrics
+		storage map[string]*Metric
 	}
 	type args struct {
 		URL    string
@@ -23,7 +23,7 @@ func TestAgent_SendData(t *testing.T) {
 	}{
 		{
 			name:   "test send",
-			fields: fields{storage: make(map[string]*Metrics)},
+			fields: fields{storage: make(map[string]*Metric)},
 			args:   args{URL: "", client: NewHTTPClient()},
 		},
 	}
@@ -46,7 +46,7 @@ func TestAgent_SendData(t *testing.T) {
 
 func TestAgent_UpdateMetrics(t *testing.T) {
 	type fields struct {
-		metrics map[string]*Metrics
+		metrics map[string]*Metric
 	}
 	tests := []struct {
 		name   string
@@ -54,7 +54,7 @@ func TestAgent_UpdateMetrics(t *testing.T) {
 	}{
 		{
 			name:   "test update metrics",
-			fields: fields{metrics: make(map[string]*Metrics)},
+			fields: fields{metrics: make(map[string]*Metric)},
 		},
 	}
 	for _, tt := range tests {
@@ -77,7 +77,7 @@ func TestNewAgent(t *testing.T) {
 	}{
 		{
 			name: "test new agent",
-			want: Agent{storage: make(map[string]*Metrics)},
+			want: Agent{storage: make(map[string]*Metric)},
 		},
 	}
 	for _, tt := range tests {

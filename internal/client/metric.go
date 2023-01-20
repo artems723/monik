@@ -13,22 +13,22 @@ const (
 	MetricTypeCounter MetricType = "counter"
 )
 
-type Metrics struct {
+type Metric struct {
 	ID    string     `json:"id"`              // имя метрики
 	MType MetricType `json:"type"`            // параметр, принимающий значение gauge или counter
 	Delta *int64     `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64   `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
 
-func NewGaugeMetric(id string, value float64) *Metrics {
-	return &Metrics{ID: id, MType: MetricTypeGauge, Value: &value}
+func NewGaugeMetric(id string, value float64) *Metric {
+	return &Metric{ID: id, MType: MetricTypeGauge, Value: &value}
 }
 
-func NewCounterMetric(id string, delta int64) *Metrics {
-	return &Metrics{ID: id, MType: MetricTypeCounter, Delta: &delta}
+func NewCounterMetric(id string, delta int64) *Metric {
+	return &Metric{ID: id, MType: MetricTypeCounter, Delta: &delta}
 }
 
-func (m *Metrics) String() string {
+func (m *Metric) String() string {
 	// check metric type
 	switch m.MType {
 	case MetricTypeGauge:

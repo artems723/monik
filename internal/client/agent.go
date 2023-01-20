@@ -9,11 +9,11 @@ import (
 )
 
 type Agent struct {
-	storage map[string]*Metrics
+	storage map[string]*Metric
 }
 
 func NewAgent() Agent {
-	return Agent{storage: make(map[string]*Metrics)}
+	return Agent{storage: make(map[string]*Metric)}
 }
 
 func (agent *Agent) UpdateMetrics() {
@@ -67,14 +67,17 @@ func (agent *Agent) SendData(URL string, client HTTPClient) {
 			log.Printf("agent.SendData: unable to marshal. Error: %v. Metric: %v", err, metric)
 			return
 		}
+		var result Metric
 		_, err = client.client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(m).
+			SetResult(&result).
 			Post(urlString)
 		if err != nil {
 			log.Printf("Error sending request: %s", err)
 			return
 		}
+		log.Printf("Got response from server: %v", result)
 	}
 	// reset the counter
 	if _, ok := agent.storage["PollCount"]; ok {
