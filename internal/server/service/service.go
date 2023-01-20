@@ -1,10 +1,10 @@
 package service
 
 import (
-	"errors"
 	"github.com/artems723/monik/internal/server"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/storage"
+	"github.com/pkg/errors"
 	"log"
 	"time"
 )
@@ -36,8 +36,7 @@ func (s *Service) WriteMetric(metric *domain.Metric) error {
 		m, err := s.storage.GetMetric(metric.ID)
 		// Check for errors
 		if err != nil && !errors.Is(err, storage.ErrNotFound) {
-			log.Printf("storage.GetMetric: %v", err)
-			return err
+			return errors.New("storage.GetMetric: " + err.Error())
 		}
 		if errors.Is(err, storage.ErrNotFound) {
 			break
@@ -57,7 +56,7 @@ func (s *Service) WriteMetric(metric *domain.Metric) error {
 	if s.config.StoreInterval == 0*time.Second {
 		err1 := s.fStorage.WriteMetric(metric)
 		if err1 != nil {
-			log.Printf("Error writing metric to file: %v", err1)
+			err = errors.Wrap(err, err1.Error())
 		}
 	}
 	return err
@@ -121,14 +120,12 @@ func (s *Service) WriteAllToFile() error {
 	// Read all metrics from storage
 	metrics, err := s.storage.GetAllMetrics()
 	if err != nil {
-		log.Printf("error occured while reading all metrics from storage: %v", err)
-		return err
+		return errors.New("storage.GetAllMetrics: error occurred while reading all metrics from storage: " + err.Error())
 	}
 	// Write all metrics to file
 	err = s.fStorage.WriteAllMetrics(metrics)
 	if err != nil {
-		log.Printf("error occured while dumping data to file: %v", err)
-		return err
+		return errors.New("fStorage.WriteAllMetrics: error occurred while dumping data to file: " + err.Error())
 	}
 	return nil
 }
@@ -136,8 +133,7 @@ func (s *Service) WriteAllToFile() error {
 func (s *Service) Shutdown() error {
 	err := s.WriteAllToFile()
 	if err != nil {
-		log.Printf("error occured while dumping data to file: %v", err)
-		return err
+		return errors.New("WriteAllToFile: error occurred while dumping data to file: " + err.Error())
 	}
 	log.Printf("Stored to file before shutdown")
 	return nil
