@@ -26,8 +26,9 @@ func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 	// Write response
 	b := new(bytes.Buffer)
 	for _, value := range allMetrics.Metrics {
-		fmt.Fprintf(b, "%v\n", *value)
+		fmt.Fprintf(b, "%v<br>", *value)
 	}
+	w.Header().Set("Content-Type", "text/html")
 	_, err = w.Write(b.Bytes())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
