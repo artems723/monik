@@ -25,9 +25,11 @@ func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 	}
 	// Write response
 	b := new(bytes.Buffer)
+	fmt.Fprintf(b, "<!DOCTYPE html><html><body><h1>All metrics</h1></body>")
 	for _, value := range allMetrics.Metrics {
 		fmt.Fprintf(b, "%v<br>", *value)
 	}
+	fmt.Fprintf(b, "</html>")
 	w.Header().Set("Content-Type", "text/html")
 	_, err = w.Write(b.Bytes())
 	if err != nil {
