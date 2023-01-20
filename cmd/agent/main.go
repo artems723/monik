@@ -33,9 +33,9 @@ func main() {
 	// Create and read config
 	cfg := config{}
 	//Parse config from flag
-	cfg.Address = *flag.String("a", "127.0.0.1:8080", "server address.")
-	cfg.ReportInterval = *flag.Duration("r", 10*time.Second, "time interval in seconds after which agent reports metrics to server.")
-	cfg.PollInterval = *flag.Duration("p", 2*time.Second, "time interval in seconds after which agent updates metrics.")
+	flag.StringVar(&cfg.Address, "a", "127.0.0.1:8080", "server address.")
+	flag.DurationVar(&cfg.ReportInterval, "r", 10*time.Second, "time interval in seconds after which agent reports metrics to server.")
+	flag.DurationVar(&cfg.PollInterval, "p", 2*time.Second, "time interval in seconds after which agent updates metrics.")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
