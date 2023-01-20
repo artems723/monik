@@ -22,6 +22,8 @@ func (h *Handler) InitRoutes() *chi.Mux {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
+	r.Use(middleware.AllowContentEncoding("gzip"))
+	r.Use(middleware.Compress(5))
 	r.Use(middleware.Recoverer)
 
 	r.Route("/update", func(r chi.Router) {
