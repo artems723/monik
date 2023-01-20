@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/artems723/monik/internal/server"
 	"github.com/artems723/monik/internal/server/handler"
 	"github.com/artems723/monik/internal/server/service"
@@ -12,16 +13,24 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func main() {
 	// Create and read config
 	cfg := server.Config{}
+	//Parse config from flag
+	cfg.Address = *flag.String("a", "127.0.0.1:8080", "server address.")
+	cfg.Restore = *flag.Bool("r", true, "bool value determines whether to load the initial values from the specified file when the server starts.")
+	cfg.StoreInterval = *flag.Duration("i", 3*time.Second, "time interval in seconds after which the current server readings are flushed to disk (value 0 makes recording synchronous).")
+	cfg.StoreFile = *flag.String("f", "/tmp/devops-metrics-db.json", "string, file name where values are stored (empty value - disables writing to disk).")
+	flag.Parse()
+	// Parse config from env
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatalf("error parsing config file: %v", err)
 	}
-	log.Printf("Using config: Address: %s", cfg.Address)
+	log.Printf("Using config: Address: %s, Restore: %v, StoreInterval: %v, StoreFile: %s", cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.StoreFile)
 	// Create storage
 	repo := storage.NewMemStorage()
 	// Create service

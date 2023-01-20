@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/artems723/monik/internal/client"
 	"github.com/caarlos0/env/v6"
 	"log"
@@ -31,6 +32,12 @@ type config struct {
 func main() {
 	// Create and read config
 	cfg := config{}
+	//Parse config from flag
+	cfg.Address = *flag.String("a", "127.0.0.1:8080", "server address.")
+	cfg.ReportInterval = *flag.Duration("r", 5*time.Second, "time interval in seconds after which agent reports metrics to server.")
+	cfg.PollInterval = *flag.Duration("p", 2*time.Second, "time interval in seconds after which agent updates metrics.")
+	flag.Parse()
+	// Parse config from env
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatal(err)
