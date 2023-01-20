@@ -70,6 +70,7 @@ func (agent *Agent) SendData(URL string, client HTTPClient) {
 		var result Metric
 		_, err = client.client.R().
 			SetHeader("Content-Type", "application/json").
+			SetHeader("Accept-Encoding", "gzip").
 			SetBody(m).
 			SetResult(&result).
 			Post(urlString)
