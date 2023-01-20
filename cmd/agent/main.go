@@ -24,9 +24,9 @@ func newMonitor(pollInterval, reportInterval time.Duration, serverAddr string, h
 }
 
 type config struct {
-	Address        string        `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
-	ReportInterval time.Duration `env:"REPORT_INTERVAL" envDefault:"10s"`
-	PollInterval   time.Duration `env:"POLL_INTERVAL" envDefault:"2s"`
+	Address        string        `env:"ADDRESS"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
+	PollInterval   time.Duration `env:"POLL_INTERVAL"`
 }
 
 func main() {
@@ -34,7 +34,7 @@ func main() {
 	cfg := config{}
 	//Parse config from flag
 	cfg.Address = *flag.String("a", "127.0.0.1:8080", "server address.")
-	cfg.ReportInterval = *flag.Duration("r", 5*time.Second, "time interval in seconds after which agent reports metrics to server.")
+	cfg.ReportInterval = *flag.Duration("r", 10*time.Second, "time interval in seconds after which agent reports metrics to server.")
 	cfg.PollInterval = *flag.Duration("p", 2*time.Second, "time interval in seconds after which agent updates metrics.")
 	flag.Parse()
 	// Parse config from env
