@@ -23,7 +23,7 @@ func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Write response
-	tmpl, _ := template.New("data").Parse("<!DOCTYPE html><html><body><h1>All metrics</h1></body>{{range .}}{{.}}<br>{{end}}</html>")
+	tmpl, _ := template.ParseFiles("templates/mainPage.html")
 	err = tmpl.Execute(w, allMetrics.Metrics)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
