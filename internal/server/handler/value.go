@@ -37,8 +37,8 @@ func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 	case domain.MetricTypeCounter:
 		// Convert int64 to string
 		str = strconv.FormatInt(*metric.Delta, 10)
-	default:
-		http.Error(w, domain.ErrUnknownMetricType.Error(), http.StatusNotImplemented)
+	case domain.MetricTypeUnknown:
+		http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
 	_, err = w.Write([]byte(str))
@@ -54,15 +54,15 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
 	// Check errors
-	if err != nil && err != domain.ErrUnknownMetricType {
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err == domain.ErrUnknownMetricType {
-		http.Error(w, err.Error(), http.StatusNotImplemented)
+	log.Printf("Got get value JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metric)
+	if metric.MType == domain.MetricTypeUnknown {
+		http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
-	log.Printf("Got get value JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metric)
 	// Get metric from service
 	res, err := h.s.GetMetric(metric)
 	// Check for errors

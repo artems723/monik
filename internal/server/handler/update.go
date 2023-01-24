@@ -43,8 +43,8 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		}
 		// Create new metric
 		metric = domain.NewCounterMetric(metricName, val)
-	default:
-		http.Error(w, domain.ErrUnknownMetricType.Error(), http.StatusNotImplemented)
+	case domain.MetricTypeUnknown:
+		http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
 	// Write metric to service
@@ -65,15 +65,15 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
 	// Check errors
-	if err != nil && err != domain.ErrUnknownMetricType {
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err == domain.ErrUnknownMetricType {
-		http.Error(w, err.Error(), http.StatusNotImplemented)
+	log.Printf("Got update JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metric)
+	if metric.MType == domain.MetricTypeUnknown {
+		http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
-	log.Printf("Got update JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metric)
 	// Write metric to service
 	err = h.s.WriteMetric(metric)
 	if err != nil && err != service.ErrMTypeMismatch && err != service.ErrNoValue {

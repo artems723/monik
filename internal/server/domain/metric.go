@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -11,6 +10,7 @@ type MetricType string
 const (
 	MetricTypeGauge   MetricType = "gauge"
 	MetricTypeCounter MetricType = "counter"
+	MetricTypeUnknown MetricType = "unknown"
 )
 
 type Metric struct {
@@ -57,9 +57,7 @@ func (t *MetricType) UnmarshalJSON(data []byte) error {
 	case MetricTypeGauge, MetricTypeCounter:
 		*t = m
 	default:
-		return ErrUnknownMetricType
+		*t = MetricTypeUnknown
 	}
 	return nil
 }
-
-var ErrUnknownMetricType = errors.New("unknown metric type")

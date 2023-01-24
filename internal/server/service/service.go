@@ -47,8 +47,6 @@ func (s *Service) WriteMetric(metric *domain.Metric) error {
 		}
 		// Add delta to current value
 		*metric.Delta += *m.Delta
-	default:
-		return domain.ErrUnknownMetricType
 	}
 	// Write metric to storage
 	err := s.storage.WriteMetric(metric)

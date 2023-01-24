@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -41,3 +42,5 @@ func (h *Handler) InitRoutes() *chi.Mux {
 	})
 	return r
 }
+
+var ErrUnknownMetricType = errors.New("unknown metric type")
