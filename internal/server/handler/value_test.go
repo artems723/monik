@@ -1,8 +1,12 @@
 package handler
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"github.com/artems723/monik/internal/server"
 	"github.com/artems723/monik/internal/server/domain"
+	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -11,12 +15,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestHandler_getValue(t *testing.T) {
 	type fields struct {
-		s          storage.Repository
-		id         string
+		s          service.Service
 		valGauge   float64
 		valCounter int64
 	}
@@ -41,15 +45,15 @@ func TestHandler_getValue(t *testing.T) {
 		urlParams urlParams
 	}{
 		{
-			name:      "test get value",
-			fields:    fields{s: storage.NewMemStorage(), valGauge: 20.201},
+			name:      "test get gauge value",
+			fields:    fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second}), valGauge: 20.201},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
 			want:      want{"text/plain; charset=utf-8", 200, "20.201"},
 			urlParams: urlParams{"gauge", "Alloc"},
 		},
 		{
-			name:      "test get value",
-			fields:    fields{s: storage.NewMemStorage(), valCounter: 20},
+			name:      "test get counter value",
+			fields:    fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second}), valCounter: 20},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
 			want:      want{"text/plain; charset=utf-8", 200, "20"},
 			urlParams: urlParams{"counter", "PollCount"},
@@ -58,15 +62,16 @@ func TestHandler_getValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &Handler{
-				s: tt.fields.s,
+				s: &tt.fields.s,
 			}
 			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("metricType", tt.urlParams.metricType)
 			rctx.URLParams.Add("metricName", tt.urlParams.metricName)
 
 			tt.args.r = tt.args.r.WithContext(context.WithValue(tt.args.r.Context(), chi.RouteCtxKey, rctx))
 
 			// add metric to storage
-			var metric domain.Metrics
+			var metric *domain.Metric
 			switch domain.MetricType(tt.urlParams.metricType) {
 			case domain.MetricTypeGauge:
 				metric = domain.NewGaugeMetric(tt.urlParams.metricName, tt.fields.valGauge)
@@ -74,10 +79,7 @@ func TestHandler_getValue(t *testing.T) {
 				metric = domain.NewCounterMetric(tt.urlParams.metricName, tt.fields.valCounter)
 			}
 
-			tt.fields.s.WriteMetric(tt.fields.id, metric)
-
-			// change remote address
-			tt.args.r.RemoteAddr = tt.fields.id
+			tt.fields.s.WriteMetric(metric)
 
 			// handler call
 			h.getValue(tt.args.w, tt.args.r)
@@ -90,6 +92,70 @@ func TestHandler_getValue(t *testing.T) {
 			assert.Equal(t, tt.want.metricValue, string(b))
 			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))
 			assert.Equal(t, tt.want.statusCode, response.StatusCode)
+		})
+	}
+}
+
+func TestHandler_getValueJSON(t *testing.T) {
+	type fields struct {
+		s service.Service
+	}
+	type want struct {
+		contentType string
+		statusCode  int
+		metric      *domain.Metric
+	}
+	type args struct {
+		w           http.ResponseWriter
+		r           *http.Request
+		contentType string
+		metric      *domain.Metric
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   want
+		args   args
+	}{
+		{
+			name:   "test success path",
+			fields: fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
+			want: want{
+				contentType: "application/json",
+				statusCode:  200,
+				metric:      domain.NewCounterMetric("PollCount", 6),
+			},
+			args: args{
+				w:           httptest.NewRecorder(),
+				r:           httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer([]byte("{\"id\":\"PollCount\",\"type\":\"counter\",\"delta\":6}"))),
+				contentType: "application/json",
+				metric:      domain.NewCounterMetric("PollCount", 6),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &Handler{
+				s: &tt.fields.s,
+			}
+
+			// add metric to storage
+			tt.fields.s.WriteMetric(tt.args.metric)
+
+			// Set content-type
+			tt.args.r.Header.Set("Content-Type", tt.args.contentType)
+			// Run handler
+			h.getValueJSON(tt.args.w, tt.args.r)
+			// Get response
+			response := tt.args.w.(*httptest.ResponseRecorder).Result()
+			defer response.Body.Close()
+			// Get JSON response as metric struct
+			var b domain.Metric
+			json.NewDecoder(response.Body).Decode(&b)
+
+			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))
+			assert.Equal(t, tt.want.statusCode, response.StatusCode)
+			assert.Equal(t, *tt.want.metric, b)
 		})
 	}
 }

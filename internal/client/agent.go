@@ -1,90 +1,88 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
 	"runtime"
 )
 
-// metric types
-type (
-	metricTypeGauge   float64
-	metricTypeCounter int64
-
-	Agent struct {
-		id           string
-		gaugeMetrics map[string]metricTypeGauge
-		pollCount    metricTypeCounter
-	}
-)
+type Agent struct {
+	storage map[string]*Metric
+}
 
 func NewAgent() Agent {
-	metricsMap := make(map[string]metricTypeGauge)
-	return Agent{gaugeMetrics: metricsMap, pollCount: 0}
+	return Agent{storage: make(map[string]*Metric)}
 }
 
 func (agent *Agent) UpdateMetrics() {
 	var rtm runtime.MemStats
-
-	//Read memory stats
+	// Read memory stats
 	runtime.ReadMemStats(&rtm)
-
-	//Update metrics
-	agent.gaugeMetrics["Alloc"] = metricTypeGauge(rtm.Alloc)
-	agent.gaugeMetrics["BuckHashSys"] = metricTypeGauge(rtm.BuckHashSys)
-	agent.gaugeMetrics["Frees"] = metricTypeGauge(rtm.Frees)
-	agent.gaugeMetrics["GCCPUFraction"] = metricTypeGauge(rtm.GCCPUFraction)
-	agent.gaugeMetrics["GCSys"] = metricTypeGauge(rtm.GCSys)
-	agent.gaugeMetrics["HeapAlloc"] = metricTypeGauge(rtm.HeapAlloc)
-	agent.gaugeMetrics["HeapIdle"] = metricTypeGauge(rtm.HeapIdle)
-	agent.gaugeMetrics["HeapInuse"] = metricTypeGauge(rtm.HeapInuse)
-	agent.gaugeMetrics["HeapObjects"] = metricTypeGauge(rtm.HeapObjects)
-	agent.gaugeMetrics["HeapReleased"] = metricTypeGauge(rtm.HeapReleased)
-	agent.gaugeMetrics["HeapSys"] = metricTypeGauge(rtm.HeapSys)
-	agent.gaugeMetrics["LastGC"] = metricTypeGauge(rtm.LastGC)
-	agent.gaugeMetrics["Lookups"] = metricTypeGauge(rtm.Lookups)
-	agent.gaugeMetrics["MCacheInuse"] = metricTypeGauge(rtm.MCacheInuse)
-	agent.gaugeMetrics["MCacheSys"] = metricTypeGauge(rtm.MCacheSys)
-	agent.gaugeMetrics["MSpanInuse"] = metricTypeGauge(rtm.MSpanInuse)
-	agent.gaugeMetrics["MSpanSys"] = metricTypeGauge(rtm.MSpanSys)
-	agent.gaugeMetrics["Mallocs"] = metricTypeGauge(rtm.Mallocs)
-	agent.gaugeMetrics["NextGC"] = metricTypeGauge(rtm.NextGC)
-	agent.gaugeMetrics["NumForcedGC"] = metricTypeGauge(rtm.NumForcedGC)
-	agent.gaugeMetrics["NumGC"] = metricTypeGauge(rtm.NumGC)
-	agent.gaugeMetrics["OtherSys"] = metricTypeGauge(rtm.OtherSys)
-	agent.gaugeMetrics["PauseTotalNs"] = metricTypeGauge(rtm.PauseTotalNs)
-	agent.gaugeMetrics["StackInuse"] = metricTypeGauge(rtm.StackInuse)
-	agent.gaugeMetrics["StackSys"] = metricTypeGauge(rtm.StackSys)
-	agent.gaugeMetrics["Sys"] = metricTypeGauge(rtm.Sys)
-	agent.gaugeMetrics["TotalAlloc"] = metricTypeGauge(rtm.TotalAlloc)
-	agent.pollCount++
-	agent.gaugeMetrics["RandomValue"] = metricTypeGauge(rand.Float64())
+	// Update metrics
+	agent.storage["Alloc"] = NewGaugeMetric("Alloc", float64(rtm.Alloc))
+	agent.storage["BuckHashSys"] = NewGaugeMetric("BuckHashSys", float64(rtm.BuckHashSys))
+	agent.storage["Frees"] = NewGaugeMetric("Frees", float64(rtm.Frees))
+	agent.storage["GCCPUFraction"] = NewGaugeMetric("GCCPUFraction", rtm.GCCPUFraction)
+	agent.storage["GCSys"] = NewGaugeMetric("GCSys", float64(rtm.GCSys))
+	agent.storage["HeapAlloc"] = NewGaugeMetric("HeapAlloc", float64(rtm.HeapAlloc))
+	agent.storage["HeapIdle"] = NewGaugeMetric("HeapIdle", float64(rtm.HeapIdle))
+	agent.storage["HeapInuse"] = NewGaugeMetric("HeapInuse", float64(rtm.HeapInuse))
+	agent.storage["HeapObjects"] = NewGaugeMetric("HeapObjects", float64(rtm.HeapObjects))
+	agent.storage["HeapReleased"] = NewGaugeMetric("HeapReleased", float64(rtm.HeapReleased))
+	agent.storage["HeapSys"] = NewGaugeMetric("HeapSys", float64(rtm.HeapSys))
+	agent.storage["LastGC"] = NewGaugeMetric("LastGC", float64(rtm.LastGC))
+	agent.storage["Lookups"] = NewGaugeMetric("Lookups", float64(rtm.Lookups))
+	agent.storage["MCacheInuse"] = NewGaugeMetric("MCacheInuse", float64(rtm.MCacheInuse))
+	agent.storage["MCacheSys"] = NewGaugeMetric("MCacheSys", float64(rtm.MCacheSys))
+	agent.storage["MSpanInuse"] = NewGaugeMetric("MSpanInuse", float64(rtm.MSpanInuse))
+	agent.storage["MSpanSys"] = NewGaugeMetric("MSpanSys", float64(rtm.MSpanSys))
+	agent.storage["Mallocs"] = NewGaugeMetric("Mallocs", float64(rtm.Mallocs))
+	agent.storage["NextGC"] = NewGaugeMetric("NextGC", float64(rtm.NextGC))
+	agent.storage["NumForcedGC"] = NewGaugeMetric("NumForcedGC", float64(rtm.NumForcedGC))
+	agent.storage["NumGC"] = NewGaugeMetric("NumGC", float64(rtm.NumGC))
+	agent.storage["OtherSys"] = NewGaugeMetric("OtherSys", float64(rtm.OtherSys))
+	agent.storage["PauseTotalNs"] = NewGaugeMetric("PauseTotalNs", float64(rtm.PauseTotalNs))
+	agent.storage["StackInuse"] = NewGaugeMetric("StackInuse", float64(rtm.StackInuse))
+	agent.storage["StackSys"] = NewGaugeMetric("StackSys", float64(rtm.StackSys))
+	agent.storage["Sys"] = NewGaugeMetric("Sys", float64(rtm.Sys))
+	agent.storage["TotalAlloc"] = NewGaugeMetric("TotalAlloc", float64(rtm.TotalAlloc))
+	agent.storage["RandomValue"] = NewGaugeMetric("RandomValue", rand.Float64())
+	// Check if no counter metric exists
+	if _, ok := agent.storage["PollCount"]; !ok {
+		agent.storage["PollCount"] = NewCounterMetric("PollCount", 0)
+	}
+	// Update counter
+	*agent.storage["PollCount"].Delta++
+	log.Printf("Got counters. PollCount=%d", *agent.storage["PollCount"].Delta)
 }
 
-// send metrics data to http server
+// Send metrics to http server
 func (agent *Agent) SendData(URL string, client HTTPClient) {
-
-	// send gauges
-	for key, val := range agent.gaugeMetrics {
-		urlString := fmt.Sprintf("%s/update/gauge/%s/%f", URL, key, val)
-
-		log.Printf("Sending data to %s\n", urlString)
-		_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
+	urlString := fmt.Sprintf("%s/update/", URL)
+	for _, metric := range agent.storage {
+		m, err := json.Marshal(metric)
 		if err != nil {
-			log.Printf("Error sending request: %s\n", err)
+			log.Printf("agent.SendData: unable to marshal. Error: %v. Metric: %v", err, metric)
 			return
 		}
+		var result Metric
+		_, err = client.client.R().
+			SetHeader("Content-Type", "application/json").
+			SetHeader("Accept-Encoding", "gzip").
+			SetBody(m).
+			SetResult(&result).
+			Post(urlString)
+		if err != nil {
+			log.Printf("Error sending request: %s", err)
+			return
+		}
+		log.Printf("Got response from server: %v", result)
 	}
-
-	// send counter
-	urlString := fmt.Sprintf("%s/update/counter/PollCount/%d", URL, agent.pollCount)
-	_, err := client.client.R().SetHeader("Content-Type", "text/plain").Post(urlString)
-	if err != nil {
-		log.Printf("Error sending request: %s\n", err)
-		return
-	}
-
 	// reset the counter
-	agent.pollCount = 0
+	if _, ok := agent.storage["PollCount"]; ok {
+		*agent.storage["PollCount"].Delta = 0
+	}
+	log.Printf("Metrics were succesfully sent")
 }

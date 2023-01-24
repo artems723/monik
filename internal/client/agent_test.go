@@ -10,8 +10,7 @@ import (
 
 func TestAgent_SendData(t *testing.T) {
 	type fields struct {
-		gaugeMetrics map[string]metricTypeGauge
-		pollCount    metricTypeCounter
+		storage map[string]*Metric
 	}
 	type args struct {
 		URL    string
@@ -24,15 +23,14 @@ func TestAgent_SendData(t *testing.T) {
 	}{
 		{
 			name:   "test send",
-			fields: fields{gaugeMetrics: make(map[string]metricTypeGauge), pollCount: 2},
+			fields: fields{storage: make(map[string]*Metric)},
 			args:   args{URL: "", client: NewHTTPClient()},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			agent := &Agent{
-				gaugeMetrics: tt.fields.gaugeMetrics,
-				pollCount:    tt.fields.pollCount,
+				storage: tt.fields.storage,
 			}
 			teardown := setup()
 			defer teardown()
@@ -40,7 +38,7 @@ func TestAgent_SendData(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			agent.gaugeMetrics["NumGC"] = metricTypeGauge(222)
+			agent.storage["NumGC"] = NewGaugeMetric("NumGC", 222)
 			agent.SendData(server.URL, tt.args.client)
 		})
 	}
@@ -48,8 +46,7 @@ func TestAgent_SendData(t *testing.T) {
 
 func TestAgent_UpdateMetrics(t *testing.T) {
 	type fields struct {
-		gaugeMetrics map[string]metricTypeGauge
-		pollCount    metricTypeCounter
+		metrics map[string]*Metric
 	}
 	tests := []struct {
 		name   string
@@ -57,18 +54,17 @@ func TestAgent_UpdateMetrics(t *testing.T) {
 	}{
 		{
 			name:   "test update metrics",
-			fields: fields{gaugeMetrics: make(map[string]metricTypeGauge), pollCount: 2},
+			fields: fields{metrics: make(map[string]*Metric)},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			agent := &Agent{
-				gaugeMetrics: tt.fields.gaugeMetrics,
-				pollCount:    tt.fields.pollCount,
+				storage: tt.fields.metrics,
 			}
 			agent.UpdateMetrics()
-			assert.Equal(t, tt.fields.pollCount+1, agent.pollCount)
-			_, ok := agent.gaugeMetrics["Alloc"]
+			assert.Equal(t, *agent.storage["PollCount"].Delta, int64(1))
+			_, ok := agent.storage["Alloc"]
 			assert.Equal(t, true, ok)
 		})
 	}
@@ -81,7 +77,7 @@ func TestNewAgent(t *testing.T) {
 	}{
 		{
 			name: "test new agent",
-			want: Agent{gaugeMetrics: make(map[string]metricTypeGauge), pollCount: 0},
+			want: Agent{storage: make(map[string]*Metric)},
 		},
 	}
 	for _, tt := range tests {

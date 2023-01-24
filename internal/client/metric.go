@@ -1,4 +1,4 @@
-package domain
+package client
 
 import (
 	"errors"
@@ -20,10 +20,6 @@ type Metric struct {
 	Value *float64   `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
 
-type Metrics struct {
-	Metrics []*Metric `json:"metrics"`
-}
-
 func NewGaugeMetric(id string, value float64) *Metric {
 	return &Metric{ID: id, MType: MetricTypeGauge, Value: &value}
 }
@@ -32,23 +28,19 @@ func NewCounterMetric(id string, delta int64) *Metric {
 	return &Metric{ID: id, MType: MetricTypeCounter, Delta: &delta}
 }
 
-func NewMetric(id, mType string) *Metric {
-	return &Metric{ID: id, MType: MetricType(mType)}
-}
-
-func (m Metric) String() string {
+func (m *Metric) String() string {
 	// check metric type
 	switch m.MType {
 	case MetricTypeGauge:
 		if m.Value != nil {
-			return fmt.Sprintf("Name: %s, Type: %s, Value: %f", m.ID, m.MType, *m.Value)
+			return fmt.Sprintf("ID: %s, Mtype: %s, Value: %f", m.ID, m.MType, *m.Value)
 		}
 	case MetricTypeCounter:
 		if m.Delta != nil {
-			return fmt.Sprintf("Name: %s, Type: %s, Delta: %d", m.ID, m.MType, *m.Delta)
+			return fmt.Sprintf("ID: %s, Mtype: %s, Delta: %d", m.ID, m.MType, *m.Delta)
 		}
 	}
-	return fmt.Sprintf("Name: %s, Type: %s", m.ID, m.MType)
+	return fmt.Sprintf("ID: %s, Mtype: %s", m.ID, m.MType)
 }
 
 func (t *MetricType) UnmarshalJSON(data []byte) error {

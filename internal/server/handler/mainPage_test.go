@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"github.com/artems723/monik/internal/server"
 	"github.com/artems723/monik/internal/server/domain"
+	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -9,12 +11,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestHandler_mainPage(t *testing.T) {
 	type fields struct {
-		s  storage.Repository
-		id string
+		s service.Service
 	}
 	type want struct {
 		contentType string
@@ -28,30 +30,27 @@ func TestHandler_mainPage(t *testing.T) {
 		r *http.Request
 	}
 	tests := []struct {
-		name   string
 		fields fields
+		name   string
 		args   args
 		want   want
 	}{
 		{
+			fields: fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
 			name:   "test get value",
-			fields: fields{s: storage.NewMemStorage()},
 			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
-			want:   want{"text/plain; charset=utf-8", 200, "Alloc=\"ID: Alloc, Mtype: gauge, Value: 20.200000\"\n", "Alloc", 20.20},
+			want:   want{"text/html", 200, "<!DOCTYPE html><html><body><h1>All metrics</h1></body>Name: Alloc, Type: gauge, Value: 20.200000<br></html>", "Alloc", 20.20},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &Handler{
-				s: tt.fields.s,
+				s: &tt.fields.s,
 			}
 
 			// add metric to storage
 			metric := domain.NewGaugeMetric(tt.want.metricName, tt.want.metricValue)
-			tt.fields.s.WriteMetric(tt.fields.id, metric)
-
-			// change remote address
-			tt.args.r.RemoteAddr = tt.fields.id
+			h.s.WriteMetric(metric)
 
 			// handler call
 			h.mainPage(tt.args.w, tt.args.r)

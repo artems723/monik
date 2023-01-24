@@ -6,9 +6,10 @@ import (
 )
 
 type Repository interface {
-	GetMetric(agentID, metricName string) (domain.Metrics, error)
-	WriteMetric(agentID string, metric domain.Metrics) error
-	GetAllMetrics(agentID string) (map[string]domain.Metrics, error)
+	GetMetric(metricName string) (*domain.Metric, error)
+	WriteMetric(metric *domain.Metric) error
+	GetAllMetrics() (*domain.Metrics, error)
+	WriteAllMetrics(*domain.Metrics) error
 }
 
 var ErrNotFound = errors.New("not found")
