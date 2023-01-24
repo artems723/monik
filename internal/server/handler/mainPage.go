@@ -1,10 +1,9 @@
 package handler
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
 	"github.com/artems723/monik/internal/server/storage"
+	"html/template"
 	"log"
 	"net/http"
 )
@@ -24,14 +23,8 @@ func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Write response
-	b := new(bytes.Buffer)
-	fmt.Fprintf(b, "<!DOCTYPE html><html><body><h1>All metrics</h1></body>")
-	for _, value := range allMetrics.Metrics {
-		fmt.Fprintf(b, "%v<br>", *value)
-	}
-	fmt.Fprintf(b, "</html>")
-	w.Header().Set("Content-Type", "text/html")
-	_, err = w.Write(b.Bytes())
+	tmpl, _ := template.New("data").Parse("<!DOCTYPE html><html><body><h1>All metrics</h1></body>{{range .}}{{.}}<br>{{end}}</html>")
+	err = tmpl.Execute(w, allMetrics.Metrics)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

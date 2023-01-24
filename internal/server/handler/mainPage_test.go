@@ -39,7 +39,7 @@ func TestHandler_mainPage(t *testing.T) {
 			fields: fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
 			name:   "test get value",
 			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
-			want:   want{"text/html", 200, "<!DOCTYPE html><html><body><h1>All metrics</h1></body>Name: Alloc, Type: gauge, Value: 20.200000<br></html>", "Alloc", 20.20},
+			want:   want{"text/html; charset=utf-8", 200, "<!DOCTYPE html><html><body><h1>All metrics</h1></body>Name: Alloc, Type: gauge, Value: 20.200000<br></html>", "Alloc", 20.20},
 		},
 	}
 	for _, tt := range tests {
