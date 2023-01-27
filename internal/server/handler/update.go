@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"github.com/artems723/monik/internal/server/domain"
-	"github.com/artems723/monik/internal/server/service"
 	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
@@ -47,16 +46,19 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
-	// Write metric to service
-	err := h.s.WriteMetric(metric)
-	if err != nil && err != service.ErrMTypeMismatch && err != service.ErrNoValue {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if err == service.ErrMTypeMismatch || err == service.ErrNoValue {
+	// Validate metric
+	err := metric.Validate()
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// Write metric to service
+	err = h.s.WriteMetric(metric)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -74,16 +76,19 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
-	// Write metric to service
-	err = h.s.WriteMetric(metric)
-	if err != nil && err != service.ErrMTypeMismatch && err != service.ErrNoValue {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if err == service.ErrMTypeMismatch || err == service.ErrNoValue {
+	// Validate metric
+	err = metric.Validate()
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// Write metric to service
+	err = h.s.WriteMetric(metric)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	// Encode to JSON and write to response
 	err = json.NewEncoder(w).Encode(metric)

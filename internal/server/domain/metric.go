@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -61,3 +62,21 @@ func (t *MetricType) UnmarshalJSON(data []byte) error {
 	}
 	return nil
 }
+
+func (m Metric) Validate() error {
+	switch m.MType {
+	case MetricTypeGauge:
+		// Check that value exists
+		if m.Value == nil {
+			return ErrNoValue
+		}
+	case MetricTypeCounter:
+		// Check that delta exists
+		if m.Delta == nil {
+			return ErrNoValue
+		}
+	}
+	return nil
+}
+
+var ErrNoValue = errors.New("no value")

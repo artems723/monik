@@ -20,33 +20,23 @@ func New(s storage.Repository, c server.Config) *Service {
 }
 
 func (s *Service) WriteMetric(metric *domain.Metric) error {
-	// Check metric type
-	switch metric.MType {
-	case domain.MetricTypeGauge:
-		// Check that value exists
-		if metric.Value == nil {
-			return ErrNoValue
-		}
-	case domain.MetricTypeCounter:
-		// Check that delta exists
-		if metric.Delta == nil {
-			return ErrNoValue
-		}
+	// Increment delta value of counter metric
+	if metric.MType == domain.MetricTypeCounter {
 		// Get current metric from storage to sum deltas
 		m, err := s.storage.GetMetric(metric.ID)
 		// Check for errors
 		if err != nil && !errors.Is(err, storage.ErrNotFound) {
 			return errors.New("storage.GetMetric: " + err.Error())
 		}
-		if errors.Is(err, storage.ErrNotFound) {
-			break
+		// Increment delta if current value exist
+		if !errors.Is(err, storage.ErrNotFound) {
+			// Check if current metric in not 'counter' type
+			if m.MType != domain.MetricTypeCounter {
+				return ErrMTypeMismatch
+			}
+			// Add delta to current value
+			*metric.Delta += *m.Delta
 		}
-		// Check if current metric in not 'counter' type
-		if m.MType != domain.MetricTypeCounter {
-			return ErrMTypeMismatch
-		}
-		// Add delta to current value
-		*metric.Delta += *m.Delta
 	}
 	// Write metric to storage
 	err := s.storage.WriteMetric(metric)
@@ -138,4 +128,3 @@ func (s *Service) Shutdown() error {
 }
 
 var ErrMTypeMismatch = errors.New("metric type mismatch")
-var ErrNoValue = errors.New("no value")
