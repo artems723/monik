@@ -75,6 +75,12 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
+
+	// Add hash to metric if key was provided
+	if h.key != "" {
+		res.AddHash(h.key)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	// Encode to JSON and write to response
 	err = json.NewEncoder(w).Encode(res)

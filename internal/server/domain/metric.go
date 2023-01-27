@@ -1,6 +1,10 @@
 package domain
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -19,6 +23,7 @@ type Metric struct {
 	MType MetricType `json:"type"`            // параметр, принимающий значение gauge или counter
 	Delta *int64     `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64   `json:"value,omitempty"` // значение метрики в случае передачи gauge
+	Hash  string     `json:"hash,omitempty"`  // значение хеш-функции
 }
 
 type Metrics struct {
@@ -37,7 +42,7 @@ func NewMetric(id, mType string) *Metric {
 	return &Metric{ID: id, MType: MetricType(mType)}
 }
 
-func (m Metric) String() string {
+func (m *Metric) String() string {
 	// check metric type
 	switch m.MType {
 	case MetricTypeGauge:
@@ -63,7 +68,7 @@ func (t *MetricType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (m Metric) Validate() error {
+func (m *Metric) Validate(key string) error {
 	switch m.MType {
 	case MetricTypeGauge:
 		// Check that value exists
@@ -76,7 +81,47 @@ func (m Metric) Validate() error {
 			return ErrNoValue
 		}
 	}
+	// calculate hash and compare with provided hash
+	if key != "" {
+		var src string
+		switch m.MType {
+		case MetricTypeGauge:
+			src = fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value)
+		case MetricTypeCounter:
+			src = fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta)
+		}
+		h1 := hash(src, key)
+		h2 := m.Hash
+		b1 := []byte(h1)
+		b2 := []byte(h2)
+
+		i := bytes.Compare(b1, b2)
+		if i != 0 {
+			return ErrWrongKey
+		}
+		//if m.Hash != h {
+		//	return ErrWrongKey
+		//}
+	}
 	return nil
 }
 
+func (m *Metric) AddHash(key string) {
+	var src string
+	switch m.MType {
+	case MetricTypeGauge:
+		src = fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value)
+	case MetricTypeCounter:
+		src = fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta)
+	}
+	m.Hash = hash(src, key)
+}
+
+func hash(src string, key string) string {
+	h := hmac.New(sha256.New, []byte(key))
+	h.Write([]byte(src))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
 var ErrNoValue = errors.New("no value")
+var ErrWrongKey = errors.New("wrong key for hashing")

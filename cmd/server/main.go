@@ -24,13 +24,14 @@ func main() {
 	flag.BoolVar(&cfg.Restore, "r", true, "bool value determines whether to load the initial values from the specified file when the server starts.")
 	flag.DurationVar(&cfg.StoreInterval, "i", 3*time.Second, "time interval in seconds after which the current server readings are flushed to disk (value 0 makes recording synchronous).")
 	flag.StringVar(&cfg.StoreFile, "f", "/tmp/devops-metrics-db.json", "string, file name where values are stored (empty value - disables writing to disk).")
+	flag.StringVar(&cfg.Key, "k", "", "key for hashing")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatalf("error parsing config file: %v", err)
 	}
-	log.Printf("Using config: Address: %s, Restore: %v, StoreInterval: %v, StoreFile: %s", cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.StoreFile)
+	log.Printf("Using config: Address: %s, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s", cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key)
 	// Create storage
 	repo := storage.NewMemStorage()
 	// Create service
@@ -42,7 +43,7 @@ func main() {
 	}
 
 	// Create handler
-	h := handler.New(serv)
+	h := handler.New(serv, cfg.Key)
 	// Create server
 	srv := server.New()
 

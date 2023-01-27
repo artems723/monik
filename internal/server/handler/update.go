@@ -47,7 +47,7 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Validate metric
-	err := metric.Validate()
+	err := metric.Validate(h.key)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -77,7 +77,7 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Validate metric
-	err = metric.Validate()
+	err = metric.Validate(h.key)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -89,9 +89,21 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get current metric from service
+	res, err := h.s.GetMetric(metric)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Add hash to metric if key was provided
+	if h.key != "" {
+		res.AddHash(h.key)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	// Encode to JSON and write to response
-	err = json.NewEncoder(w).Encode(metric)
+	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -38,6 +38,8 @@ func (s *Service) WriteMetric(metric *domain.Metric) error {
 			*metric.Delta += *m.Delta
 		}
 	}
+	// Flush hash value. We always store metrics without hash
+	metric.Hash = ""
 	// Write metric to storage
 	err := s.storage.WriteMetric(metric)
 	// Write metric to file if storeInterval == 0s

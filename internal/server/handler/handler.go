@@ -8,11 +8,12 @@ import (
 )
 
 type Handler struct {
-	s *service.Service
+	s   *service.Service
+	key string
 }
 
-func New(s *service.Service) *Handler {
-	return &Handler{s: s}
+func New(s *service.Service, key string) *Handler {
+	return &Handler{s: s, key: key}
 }
 
 func (h *Handler) InitRoutes() *chi.Mux {

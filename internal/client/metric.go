@@ -3,6 +3,7 @@ package client
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strings"
 )
@@ -60,7 +61,7 @@ func NewCounterMetric(id string, delta int64, key string) *Metric {
 func hash(src string, key string) string {
 	h := hmac.New(sha256.New, []byte(key))
 	h.Write([]byte(src))
-	return string(h.Sum(nil))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 func (m *Metric) String() string {
