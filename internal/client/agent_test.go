@@ -38,7 +38,7 @@ func TestAgent_SendData(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			agent.storage["NumGC"] = NewGaugeMetric("NumGC", 222)
+			agent.storage["NumGC"] = NewGaugeMetric("NumGC", 222, "")
 			agent.SendData(server.URL, tt.args.client)
 		})
 	}
@@ -82,7 +82,7 @@ func TestNewAgent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewAgent(); !reflect.DeepEqual(got, tt.want) {
+			if got := NewAgent(""); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewAgent() = %v, want %v", got, tt.want)
 			}
 		})

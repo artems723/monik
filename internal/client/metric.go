@@ -1,6 +1,8 @@
 package client
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"fmt"
 	"strings"
 )
@@ -18,14 +20,47 @@ type Metric struct {
 	MType MetricType `json:"type"`            // параметр, принимающий значение gauge или counter
 	Delta *int64     `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64   `json:"value,omitempty"` // значение метрики в случае передачи gauge
+	Hash  string     `json:"hash,omitempty"`  // значение хеш-функции
 }
 
-func NewGaugeMetric(id string, value float64) *Metric {
-	return &Metric{ID: id, MType: MetricTypeGauge, Value: &value}
+func NewGaugeMetric(id string, value float64, key string) *Metric {
+	// calculate hash if key exists
+	if key != "" {
+		return &Metric{
+			ID:    id,
+			MType: MetricTypeGauge,
+			Value: &value,
+			Hash:  hash(fmt.Sprintf("%s:gauge:%f", id, value), key),
+		}
+	}
+	return &Metric{
+		ID:    id,
+		MType: MetricTypeGauge,
+		Value: &value,
+	}
 }
 
-func NewCounterMetric(id string, delta int64) *Metric {
-	return &Metric{ID: id, MType: MetricTypeCounter, Delta: &delta}
+func NewCounterMetric(id string, delta int64, key string) *Metric {
+	// calculate hash if key exists
+	if key != "" {
+		return &Metric{
+			ID:    id,
+			MType: MetricTypeCounter,
+			Delta: &delta,
+			Hash:  hash(fmt.Sprintf("%s:counter:%d", id, delta), key),
+		}
+	}
+	return &Metric{
+		ID:    id,
+		MType: MetricTypeCounter,
+		Delta: &delta,
+	}
+}
+
+func hash(src string, key string) string {
+	h := hmac.New(sha256.New, []byte(key))
+	h.Write([]byte(src))
+	return string(h.Sum(nil))
 }
 
 func (m *Metric) String() string {
