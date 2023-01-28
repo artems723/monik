@@ -46,7 +46,7 @@ func main() {
 	}
 
 	// Create handler
-	h := handler.New(serv, cfg.Key)
+	h := handler.New(serv, cfg.Key, cfg.DatabaseDSN)
 	// Create server
 	srv := server.New()
 

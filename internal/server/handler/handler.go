@@ -8,12 +8,13 @@ import (
 )
 
 type Handler struct {
-	s   *service.Service
-	key string
+	s           *service.Service
+	key         string
+	databaseDSN string
 }
 
-func New(s *service.Service, key string) *Handler {
-	return &Handler{s: s, key: key}
+func New(s *service.Service, key string, databaseDSN string) *Handler {
+	return &Handler{s: s, key: key, databaseDSN: databaseDSN}
 }
 
 func (h *Handler) InitRoutes() *chi.Mux {
@@ -40,6 +41,10 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	r.Route("/", func(r chi.Router) {
 		r.Get("/", h.mainPage)
+	})
+
+	r.Route("/ping", func(r chi.Router) {
+		r.Get("/", h.ping)
 	})
 	return r
 }
