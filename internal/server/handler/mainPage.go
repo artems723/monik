@@ -23,6 +23,7 @@ func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
+	w.Header().Set("Content-Type", "text/html")
 	// Write response
 	path := filepath.Join("templates", "mainPage.html")
 	tmpl, _ := template.ParseFiles(path)
@@ -31,6 +32,5 @@ func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
 }
