@@ -19,7 +19,7 @@ func (h *Handler) ping(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
 	defer cancel()
 	if err = db.PingContext(ctx); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

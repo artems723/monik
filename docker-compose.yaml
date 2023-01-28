@@ -23,6 +23,7 @@ services:
     container_name: postgres
     restart: always
     environment:
+
       POSTGRES_PASSWORD: pass
     ports:
       - 5432:5432
