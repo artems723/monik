@@ -10,6 +10,7 @@ type Repository interface {
 	WriteMetric(metric *domain.Metric) error
 	GetAllMetrics() (*domain.Metrics, error)
 	WriteAllMetrics(*domain.Metrics) error
+	PingRepo() error
 }
 
 var ErrNotFound = errors.New("not found")

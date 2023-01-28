@@ -120,12 +120,18 @@ func (s *Service) WriteAllToFile() error {
 	return nil
 }
 
+func (s *Service) Ping() error {
+	return s.storage.PingRepo()
+}
+
 func (s *Service) Shutdown() error {
-	err := s.WriteAllToFile()
-	if err != nil {
-		return errors.New("WriteAllToFile: error occurred while dumping data to file: " + err.Error())
+	if s.config.StoreFile != "" {
+		err := s.WriteAllToFile()
+		if err != nil {
+			return errors.New("WriteAllToFile: error occurred while dumping data to file: " + err.Error())
+		}
+		log.Printf("Stored to file before shutdown")
 	}
-	log.Printf("Stored to file before shutdown")
 	return nil
 }
 

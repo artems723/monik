@@ -101,4 +101,9 @@ func (s *FileStorage) readLastLine() ([]byte, error) {
 	return buffer, nil
 }
 
+func (s *FileStorage) PingRepo() error {
+	_, err := s.file.Stat()
+	return err
+}
+
 var ErrEmptyFile = errors.New("file is empty")

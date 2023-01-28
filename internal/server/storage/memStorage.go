@@ -43,3 +43,7 @@ func (m *MemStorage) WriteAllMetrics(metrics *domain.Metrics) error {
 	}
 	return nil
 }
+
+func (m *MemStorage) PingRepo() error {
+	return nil
+}
