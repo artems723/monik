@@ -8,4 +8,5 @@ type Config struct {
 	StoreFile     string        `env:"STORE_FILE"`
 	Restore       bool          `env:"RESTORE"`
 	Key           string        `env:"KEY"`
+	DatabaseDSN   string        `env:"DATABASE_DSN"`
 }

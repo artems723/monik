@@ -27,6 +27,7 @@ func main() {
 	path := filepath.Join(os.TempDir(), "devops-metrics-db.json")
 	flag.StringVar(&cfg.StoreFile, "f", path, "string, file name where values are stored (empty value - disables writing to disk).")
 	flag.StringVar(&cfg.Key, "k", "", "key for hashing")
+	flag.StringVar(&cfg.DatabaseDSN, "d", "postgres://postgres:pass@postgres/postgres?sslmode=disable", "database data source name")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
