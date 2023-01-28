@@ -10,9 +10,24 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
+
+func init() {
+	// Change working dir to root project dir. It is needed for locating template files.
+	wd, _ := os.Getwd()
+	for !strings.HasSuffix(wd, "monik") {
+		wd = filepath.Dir(wd)
+	}
+	err := os.Chdir(wd)
+	if err != nil {
+		panic(err)
+	}
+}
 
 func TestHandler_mainPage(t *testing.T) {
 	type fields struct {
@@ -37,9 +52,9 @@ func TestHandler_mainPage(t *testing.T) {
 	}{
 		{
 			fields: fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
-			name:   "test get value",
+			name:   "test main page",
 			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
-			want:   want{"text/html; charset=utf-8", 200, "<!DOCTYPE html><html><body><h1>All metrics</h1></body>Name: Alloc, Type: gauge, Value: 20.200000<br></html>", "Alloc", 20.20},
+			want:   want{"text/html; charset=utf-8", 200, "<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n    <meta charset=\"UTF-8\">\r\n    <title>All metrics</title>\r\n</head>\r\n<body>\r\n<h1>All metrics</h1>\r\nName: Alloc, Type: gauge, Value: 20.200000<br>\r\n</body>\r\n</html>", "Alloc", 20.20},
 		},
 	}
 	for _, tt := range tests {
@@ -51,6 +66,13 @@ func TestHandler_mainPage(t *testing.T) {
 			// add metric to storage
 			metric := domain.NewGaugeMetric(tt.want.metricName, tt.want.metricValue)
 			h.s.WriteMetric(metric)
+
+			//wd, _ := os.Getwd()
+			//fmt.Println(wd)
+			//for !strings.HasSuffix(wd, "monik") {
+			//	wd = filepath.Dir(wd)
+			//}
+			//fmt.Println(wd)
 
 			// handler call
 			h.mainPage(tt.args.w, tt.args.r)

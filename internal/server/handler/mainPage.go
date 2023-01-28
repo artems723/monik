@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 )
 
 func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +24,8 @@ func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Write response
-	tmpl, _ := template.ParseFiles("templates/mainPage.html")
+	path := filepath.Join("templates", "mainPage.html")
+	tmpl, _ := template.ParseFiles(path)
 	err = tmpl.Execute(w, allMetrics.Metrics)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

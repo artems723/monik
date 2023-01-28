@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 )
@@ -23,7 +24,8 @@ func main() {
 	flag.StringVar(&cfg.Address, "a", "127.0.0.1:8080", "server address.")
 	flag.BoolVar(&cfg.Restore, "r", true, "bool value determines whether to load the initial values from the specified file when the server starts.")
 	flag.DurationVar(&cfg.StoreInterval, "i", 3*time.Second, "time interval in seconds after which the current server readings are flushed to disk (value 0 makes recording synchronous).")
-	flag.StringVar(&cfg.StoreFile, "f", "/tmp/devops-metrics-db.json", "string, file name where values are stored (empty value - disables writing to disk).")
+	path := filepath.Join(os.TempDir(), "devops-metrics-db.json")
+	flag.StringVar(&cfg.StoreFile, "f", path, "string, file name where values are stored (empty value - disables writing to disk).")
 	flag.StringVar(&cfg.Key, "k", "", "key for hashing")
 	flag.Parse()
 	// Parse config from env
