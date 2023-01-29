@@ -79,7 +79,7 @@ func TestHandler_getValue(t *testing.T) {
 				metric = domain.NewCounterMetric(tt.urlParams.metricName, tt.fields.valCounter)
 			}
 
-			tt.fields.s.WriteMetric(metric)
+			tt.fields.s.WriteMetric(tt.args.r.Context(), metric)
 
 			// handler call
 			h.getValue(tt.args.w, tt.args.r)
@@ -140,7 +140,7 @@ func TestHandler_getValueJSON(t *testing.T) {
 			}
 
 			// add metric to storage
-			tt.fields.s.WriteMetric(tt.args.metric)
+			tt.fields.s.WriteMetric(tt.args.r.Context(), tt.args.metric)
 
 			// Set content-type
 			tt.args.r.Header.Set("Content-Type", tt.args.contentType)

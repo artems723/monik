@@ -12,7 +12,7 @@ import (
 func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Got main page request. Method=%s, Path: %s", r.Method, r.URL.Path)
 	// Get all metrics from storage
-	allMetrics, err := h.s.GetAllMetrics()
+	allMetrics, err := h.s.GetAllMetrics(r.Context())
 	// Check for errors
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		log.Printf("storage.GetMetric: %v", err)

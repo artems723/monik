@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"github.com/artems723/monik/internal/server"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/storage"
@@ -19,11 +20,11 @@ func New(s storage.Repository, c server.Config) *Service {
 	return &Service{storage: s, config: c}
 }
 
-func (s *Service) WriteMetric(metric *domain.Metric) error {
+func (s *Service) WriteMetric(ctx context.Context, metric *domain.Metric) error {
 	// Increment delta value of counter metric
 	if metric.MType == domain.MetricTypeCounter {
 		// Get current metric from storage to sum deltas
-		m, err := s.storage.GetMetric(metric.ID)
+		m, err := s.storage.GetMetric(ctx, metric.ID)
 		// Check for errors
 		if err != nil && !errors.Is(err, storage.ErrNotFound) {
 			return errors.New("storage.GetMetric: " + err.Error())
@@ -41,10 +42,10 @@ func (s *Service) WriteMetric(metric *domain.Metric) error {
 	// Flush hash value. We always store metrics without hash
 	metric.Hash = ""
 	// Write metric to storage
-	err := s.storage.WriteMetric(metric)
+	err := s.storage.WriteMetric(ctx, metric)
 	// Write metric to file if storeInterval == 0s
 	if s.config.StoreInterval == 0*time.Second {
-		err1 := s.fStorage.WriteMetric(metric)
+		err1 := s.fStorage.WriteMetric(ctx, metric)
 		if err1 != nil {
 			err = errors.Wrap(err, err1.Error())
 		}
@@ -52,21 +53,21 @@ func (s *Service) WriteMetric(metric *domain.Metric) error {
 	return err
 }
 
-func (s *Service) GetMetric(metric *domain.Metric) (*domain.Metric, error) {
-	curMetric, err := s.storage.GetMetric(metric.ID)
+func (s *Service) GetMetric(ctx context.Context, metric *domain.Metric) (*domain.Metric, error) {
+	curMetric, err := s.storage.GetMetric(ctx, metric.ID)
 	if curMetric != nil && curMetric.MType != metric.MType {
 		return curMetric, ErrMTypeMismatch
 	}
 	return curMetric, err
 }
 
-func (s *Service) GetAllMetrics() (*domain.Metrics, error) {
-	return s.storage.GetAllMetrics()
+func (s *Service) GetAllMetrics(ctx context.Context) (*domain.Metrics, error) {
+	return s.storage.GetAllMetrics(ctx)
 }
 
-func (s *Service) WriteMetrics(metrics *domain.Metrics) error {
+func (s *Service) WriteMetrics(ctx context.Context, metrics *domain.Metrics) error {
 	for _, metric := range metrics.Metrics {
-		err := s.WriteMetric(metric)
+		err := s.WriteMetric(ctx, metric)
 		if err != nil {
 			return err
 		}
@@ -78,12 +79,12 @@ func (s *Service) RunFileStorage(fileStorage *storage.FileStorage) {
 	// Read metrics from file to storage
 	s.fStorage = fileStorage
 	if s.config.Restore {
-		metrics, err := s.fStorage.GetAllMetrics()
+		metrics, err := s.fStorage.GetAllMetrics(context.Background())
 		if err != nil {
 			log.Printf("error occured while reading metrics from file: %v", err)
 			return
 		}
-		err = s.storage.WriteAllMetrics(metrics)
+		err = s.storage.WriteAllMetrics(context.Background(), metrics)
 		if err != nil {
 			log.Printf("error occured while writing metrics to storage: %v", err)
 			return
@@ -108,12 +109,12 @@ func (s *Service) RunFileStorage(fileStorage *storage.FileStorage) {
 
 func (s *Service) WriteAllToFile() error {
 	// Read all metrics from storage
-	metrics, err := s.storage.GetAllMetrics()
+	metrics, err := s.storage.GetAllMetrics(context.Background())
 	if err != nil {
 		return errors.New("storage.GetAllMetrics: error occurred while reading all metrics from storage: " + err.Error())
 	}
 	// Write all metrics to file
-	err = s.fStorage.WriteAllMetrics(metrics)
+	err = s.fStorage.WriteAllMetrics(context.Background(), metrics)
 	if err != nil {
 		return errors.New("fStorage.WriteAllMetrics: error occurred while dumping data to file: " + err.Error())
 	}

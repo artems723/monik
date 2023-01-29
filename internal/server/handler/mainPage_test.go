@@ -65,7 +65,7 @@ func TestHandler_mainPage(t *testing.T) {
 
 			// add metric to storage
 			metric := domain.NewGaugeMetric(tt.want.metricName, tt.want.metricValue)
-			h.s.WriteMetric(metric)
+			h.s.WriteMetric(tt.args.r.Context(), metric)
 
 			// handler call
 			h.mainPage(tt.args.w, tt.args.r)

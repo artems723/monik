@@ -27,22 +27,22 @@ func NewPostgresStorage(databaseDSN string) (*PostgresStorage, error) {
 	return &PostgresStorage{db}, nil
 }
 
-func (p *PostgresStorage) GetMetric(metricName string) (*domain.Metric, error) {
+func (p *PostgresStorage) GetMetric(ctx context.Context, metricName string) (*domain.Metric, error) {
 	// TODO
 	return nil, nil
 }
 
-func (p *PostgresStorage) WriteMetric(metric *domain.Metric) error {
+func (p *PostgresStorage) WriteMetric(ctx context.Context, metric *domain.Metric) error {
 	// TODO
 	return nil
 }
 
-func (p *PostgresStorage) GetAllMetrics() (*domain.Metrics, error) {
+func (p *PostgresStorage) GetAllMetrics(ctx context.Context) (*domain.Metrics, error) {
 	// TODO
 	return nil, nil
 }
 
-func (p *PostgresStorage) WriteAllMetrics(*domain.Metrics) error {
+func (p *PostgresStorage) WriteAllMetrics(ctx context.Context, metrics *domain.Metrics) error {
 	// TODO
 	return nil
 }

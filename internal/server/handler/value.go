@@ -17,7 +17,7 @@ func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 	metricName := chi.URLParam(r, "metricName")
 	log.Printf("Got get value request. Method=%s, Path: %s, metricType: %s, metricName: %s\n", r.Method, r.URL.Path, metricType, metricName)
 	// Get metric from service
-	metric, err := h.s.GetMetric(domain.NewMetric(metricName, metricType))
+	metric, err := h.s.GetMetric(r.Context(), domain.NewMetric(metricName, metricType))
 	// Check for errors
 	if err != nil && !errors.Is(err, storage.ErrNotFound) && !errors.Is(err, service.ErrMTypeMismatch) {
 		log.Printf("storage.GetMetric: %v", err)
@@ -64,7 +64,7 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get metric from service
-	res, err := h.s.GetMetric(metric)
+	res, err := h.s.GetMetric(r.Context(), metric)
 	// Check for errors
 	if err != nil && !errors.Is(err, storage.ErrNotFound) && !errors.Is(err, service.ErrMTypeMismatch) {
 		log.Printf("storage.GetMetric: %v", err)
