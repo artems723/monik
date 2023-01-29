@@ -19,11 +19,11 @@ const (
 )
 
 type Metric struct {
-	ID    string     `json:"id"`              // имя метрики
-	MType MetricType `json:"type"`            // параметр, принимающий значение gauge или counter
-	Delta *int64     `json:"delta,omitempty"` // значение метрики в случае передачи counter
-	Value *float64   `json:"value,omitempty"` // значение метрики в случае передачи gauge
-	Hash  string     `json:"hash,omitempty"`  // значение хеш-функции
+	ID    string     `json:"id" db:"name"`               // имя метрики
+	MType MetricType `json:"type" db:"type"`             // параметр, принимающий значение gauge или counter
+	Delta *int64     `json:"delta,omitempty" db:"delta"` // значение метрики в случае передачи counter
+	Value *float64   `json:"value,omitempty" db:"value"` // значение метрики в случае передачи gauge
+	Hash  string     `json:"hash,omitempty" db:"-"`      // значение хеш-функции
 }
 
 type Metrics struct {

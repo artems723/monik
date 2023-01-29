@@ -4,6 +4,5 @@ CREATE TABLE IF NOT EXISTS "metrics" (
     type text NOT NULL,
     delta bigint,
     value double precision,
-    hash VARCHAR(64),
     CONSTRAINT unique_name_index UNIQUE (name)
 );
