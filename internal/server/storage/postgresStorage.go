@@ -8,7 +8,6 @@ import (
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/jmoiron/sqlx"
 	"log"
-	"path/filepath"
 	"time"
 )
 
@@ -26,8 +25,7 @@ func NewPostgresStorage(databaseDSN string) (*PostgresStorage, error) {
 	}
 
 	// Create table if not exists
-	path := filepath.Join("sql", "metrics_table_up.sql")
-	file, err := SQL.ReadFile(path)
+	file, err := SQL.ReadFile("sql/metrics_table_up.sql")
 	if err != nil {
 		return nil, err
 	}
