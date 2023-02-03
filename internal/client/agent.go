@@ -60,28 +60,36 @@ func (agent *Agent) UpdateMetrics() {
 	log.Printf("Got counters. PollCount=%d", *agent.storage["PollCount"].Delta)
 }
 
+func (agent *Agent) getValues() []*Metric {
+	values := make([]*Metric, 0, len(agent.storage))
+	for _, v := range agent.storage {
+		values = append(values, v)
+	}
+	return values
+}
+
 // Send metrics to http server
 func (agent *Agent) SendData(URL string, client HTTPClient) {
-	urlString := fmt.Sprintf("%s/update/", URL)
-	for _, metric := range agent.storage {
-		m, err := json.Marshal(metric)
-		if err != nil {
-			log.Printf("agent.SendData: unable to marshal. Error: %v. Metric: %v", err, metric)
-			return
-		}
-		var result Metric
-		_, err = client.client.R().
-			SetHeader("Content-Type", "application/json").
-			SetHeader("Accept-Encoding", "gzip").
-			SetBody(m).
-			SetResult(&result).
-			Post(urlString)
-		if err != nil {
-			log.Printf("Error sending request: %s", err)
-			return
-		}
-		log.Printf("Got response from server: %v", result)
+	urlString := fmt.Sprintf("%s/updates/", URL)
+	metrics := agent.getValues()
+	m, err := json.Marshal(metrics)
+	if err != nil {
+		log.Printf("agent.SendData: unable to marshal. Error: %v. Metric: %v", err, metrics)
+		return
 	}
+	var result []Metric
+	_, err = client.client.R().
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Accept-Encoding", "gzip").
+		SetBody(m).
+		SetResult(&result).
+		Post(urlString)
+	if err != nil {
+		log.Printf("Error sending request: %s", err)
+		return
+	}
+	log.Printf("Got response from server: %v", result)
+
 	// reset the counter
 	if _, ok := agent.storage["PollCount"]; ok {
 		*agent.storage["PollCount"].Delta = 0
