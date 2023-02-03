@@ -140,25 +140,5 @@ func (h *Handler) updateMetricsJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get current metrics from service
-	res, err := h.s.GetAllMetrics(r.Context())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Add hash to metrics if key was provided
-	if h.key != "" {
-		for _, m := range res.Metrics {
-			m.AddHash(h.key)
-		}
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	// Encode to JSON and write to response
-	err = json.NewEncoder(w).Encode(res.Metrics)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	w.WriteHeader(http.StatusOK)
 }
