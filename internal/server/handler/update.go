@@ -109,3 +109,56 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *Handler) updateMetricsJSON(w http.ResponseWriter, r *http.Request) {
+	var metrics []*domain.Metric
+	// Read JSON and store to metrics slice
+	err := json.NewDecoder(r.Body).Decode(&metrics)
+	// Check errors
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log.Printf("Got updates JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metrics)
+	for _, m := range metrics {
+		if m.MType == domain.MetricTypeUnknown {
+			http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
+			return
+		}
+		// Validate metric
+		err = m.Validate(h.key)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Write metric to service
+	err = h.s.WriteMetrics(r.Context(), &domain.Metrics{Metrics: metrics})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Get current metrics from service
+	res, err := h.s.GetAllMetrics(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Add hash to metrics if key was provided
+	if h.key != "" {
+		for _, m := range res.Metrics {
+			m.AddHash(h.key)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	// Encode to JSON and write to response
+	err = json.NewEncoder(w).Encode(res.Metrics)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}

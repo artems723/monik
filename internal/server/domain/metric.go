@@ -99,9 +99,6 @@ func (m *Metric) Validate(key string) error {
 		if i != 0 {
 			return ErrWrongKey
 		}
-		//if m.Hash != h {
-		//	return ErrWrongKey
-		//}
 	}
 	return nil
 }
