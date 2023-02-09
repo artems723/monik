@@ -1,17 +1,20 @@
 package handler
 
 import (
+	"errors"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 type Handler struct {
-	s *service.Service
+	s           *service.Service
+	key         string
+	databaseDSN string
 }
 
-func New(s *service.Service) *Handler {
-	return &Handler{s: s}
+func New(s *service.Service, key string, databaseDSN string) *Handler {
+	return &Handler{s: s, key: key, databaseDSN: databaseDSN}
 }
 
 func (h *Handler) InitRoutes() *chi.Mux {
@@ -31,6 +34,10 @@ func (h *Handler) InitRoutes() *chi.Mux {
 		r.Post("/", h.updateMetricJSON)
 	})
 
+	r.Route("/updates", func(r chi.Router) {
+		r.Post("/", h.updateMetricsJSON)
+	})
+
 	r.Route("/value", func(r chi.Router) {
 		r.Get("/{metricType}/{metricName}", h.getValue)
 		r.Post("/", h.getValueJSON)
@@ -39,5 +46,11 @@ func (h *Handler) InitRoutes() *chi.Mux {
 	r.Route("/", func(r chi.Router) {
 		r.Get("/", h.mainPage)
 	})
+
+	r.Route("/ping", func(r chi.Router) {
+		r.Get("/", h.ping)
+	})
 	return r
 }
+
+var ErrUnknownMetricType = errors.New("unknown metric type")

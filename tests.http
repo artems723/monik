@@ -1,0 +1,21 @@
+GET http://localhost:8080/value/gauge/testGauge
+
+### Send POST request with json body
+POST http://localhost:8080/updates
+Content-Type: application/json
+
+[
+  {"id": "MetricGauge", "type": "gauge", "value": 20.20},
+  {"id": "MetricCounter", "type": "counter", "delta": 10}
+]
+
+### Send POST request with json body
+POST http://localhost:8080/updates
+Content-Type: application/json
+
+[
+{"id": "CounterBatchZip141", "type": "counter", "delta": 1332529846},
+{"id": "GaugeBatchZip3", "type": "gauge", "value": 40688.846268},
+{"id": "CounterBatchZip141", "type": "counter", "delta": 1183590908},
+{"id": "GaugeBatchZip3", "type": "gauge", "value": 48833.896318}
+]
