@@ -5,16 +5,24 @@ import (
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"html/template"
+	"path/filepath"
 )
 
 type Handler struct {
 	s           *service.Service
 	key         string
 	databaseDSN string
+	tmpl        *template.Template
 }
 
 func New(s *service.Service, key string, databaseDSN string) *Handler {
-	return &Handler{s: s, key: key, databaseDSN: databaseDSN}
+	return &Handler{
+		s:           s,
+		key:         key,
+		databaseDSN: databaseDSN,
+		tmpl:        template.Must(template.ParseFiles(filepath.Join("templates", "mainPage.html"))),
+	}
 }
 
 func (h *Handler) InitRoutes() *chi.Mux {
