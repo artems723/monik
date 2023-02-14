@@ -3,20 +3,18 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"embed"
 	"errors"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/jmoiron/sqlx"
 	"log"
+	"os"
+	"path/filepath"
 	"time"
 )
 
 type PostgresStorage struct {
 	db *sqlx.DB
 }
-
-//go:embed sql/*
-var SQL embed.FS
 
 func NewPostgresStorage(databaseDSN string) (*PostgresStorage, error) {
 	db, err := sqlx.Connect("pgx", databaseDSN)
@@ -25,7 +23,7 @@ func NewPostgresStorage(databaseDSN string) (*PostgresStorage, error) {
 	}
 
 	// Create table if not exists
-	file, err := SQL.ReadFile("sql/metrics_table_up.sql")
+	file, err := os.ReadFile(filepath.Join("migrations", "metrics_table_up.sql"))
 	if err != nil {
 		return nil, err
 	}
