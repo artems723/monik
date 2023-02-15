@@ -46,17 +46,23 @@ func (p *PostgresStorage) GetMetric(ctx context.Context, metricName string) (*do
 	return &m, nil
 }
 
-func (p *PostgresStorage) WriteMetric(ctx context.Context, metric *domain.Metric) error {
+func (p *PostgresStorage) WriteMetric(ctx context.Context, metric *domain.Metric) (*domain.Metric, error) {
+	// add metric to storage
 	tx := p.db.MustBegin()
 	_, err := tx.NamedExec("INSERT INTO metrics (name, type, delta, value) VALUES (:name, :type, :delta, :value) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, type = EXCLUDED.type, delta = EXCLUDED.delta, value = EXCLUDED.value", &metric)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	// Get metric from db to return it
+	m, err := p.GetMetric(ctx, metric.ID)
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (p *PostgresStorage) GetAllMetrics(ctx context.Context) (*domain.Metrics, error) {

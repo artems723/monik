@@ -53,7 +53,7 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Write metric to service
-	err = h.s.WriteMetric(r.Context(), metric)
+	_, err = h.s.WriteMetric(r.Context(), metric)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -83,14 +83,7 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Write metric to service
-	err = h.s.WriteMetric(r.Context(), metric)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Get current metric from service
-	res, err := h.s.GetMetric(r.Context(), metric)
+	res, err := h.s.WriteMetric(r.Context(), metric)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
