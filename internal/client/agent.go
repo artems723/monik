@@ -3,6 +3,8 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 	"log"
 	"math/rand"
 	"runtime"
@@ -109,4 +111,16 @@ func (agent *Agent) resetCounter() {
 	if _, ok := agent.storage["PollCount"]; ok {
 		*agent.storage["PollCount"].Delta = 0
 	}
+}
+
+func (agent *Agent) UpdateAdditionalMetrics() {
+	v, _ := mem.VirtualMemory()
+	c, _ := cpu.Percent(0, false)
+	// Update metrics
+	agent.mu.Lock()
+	defer agent.mu.Unlock()
+	agent.storage["TotalMemory"] = NewGaugeMetric("TotalMemory", float64(v.Total), agent.key)
+	agent.storage["FreeMemory"] = NewGaugeMetric("FreeMemory", float64(v.Free), agent.key)
+	agent.storage["CPUutilization1"] = NewGaugeMetric("CPUutilization1", c[0], agent.key)
+	log.Printf("Got additional counters")
 }

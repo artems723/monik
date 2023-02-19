@@ -46,6 +46,12 @@ func main() {
 			agent.UpdateMetrics()
 		}
 	}()
+	go func() {
+		for {
+			<-pollIntervalTicker.C
+			agent.UpdateAdditionalMetrics()
+		}
+	}()
 
 	if cfg.RateLimit <= 0 {
 		log.Fatal("RateLimit must be greater than 0")
