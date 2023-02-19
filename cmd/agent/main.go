@@ -39,16 +39,18 @@ func main() {
 	agent := client.NewAgent(cfg.Key)
 
 	// infinite loop for polling counters
-	pollIntervalTicker := time.NewTicker(cfg.PollInterval)
+	pollIntervalTicker1 := time.NewTicker(cfg.PollInterval)
 	go func() {
 		for {
-			<-pollIntervalTicker.C
+			<-pollIntervalTicker1.C
 			agent.UpdateMetrics()
 		}
 	}()
+	// infinite loop for polling additional counters
+	pollIntervalTicker2 := time.NewTicker(cfg.PollInterval)
 	go func() {
 		for {
-			<-pollIntervalTicker.C
+			<-pollIntervalTicker2.C
 			agent.UpdateAdditionalMetrics()
 		}
 	}()
