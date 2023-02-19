@@ -8,21 +8,6 @@ import (
 	"time"
 )
 
-func newMonitor(pollInterval, reportInterval time.Duration, serverAddr string, httpClient client.HTTPClient, agent client.Agent) {
-	pollIntervalTicker := time.NewTicker(pollInterval)
-	reportIntervalTicker := time.NewTicker(reportInterval)
-
-	// infinite loop for polling counters and sending it to server
-	for {
-		select {
-		case <-pollIntervalTicker.C:
-			agent.UpdateMetrics()
-		case <-reportIntervalTicker.C:
-			agent.SendData(serverAddr, httpClient)
-		}
-	}
-}
-
 type config struct {
 	Address        string        `env:"ADDRESS"`
 	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
@@ -52,5 +37,30 @@ func main() {
 
 	httpClient := client.NewHTTPClient()
 	agent := client.NewAgent(cfg.Key)
-	newMonitor(cfg.PollInterval, cfg.ReportInterval, serverAddr, httpClient, agent)
+
+	// infinite loop for polling counters
+	pollIntervalTicker := time.NewTicker(cfg.PollInterval)
+	go func() {
+		for {
+			<-pollIntervalTicker.C
+			agent.UpdateMetrics()
+		}
+	}()
+
+	// use workerpool pattern to limit maximum number of outgoing connections to server
+	jobCh := make(chan struct{})
+	for i := 0; i < cfg.RateLimit; i++ {
+		go func() {
+			for range jobCh {
+				// send counters to server
+				agent.SendData(serverAddr, httpClient)
+			}
+		}()
+	}
+	// infinite loop for sending counters to server
+	reportIntervalTicker := time.NewTicker(cfg.ReportInterval)
+	for {
+		<-reportIntervalTicker.C
+		jobCh <- struct{}{}
+	}
 }
