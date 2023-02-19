@@ -47,6 +47,10 @@ func main() {
 		}
 	}()
 
+	if cfg.RateLimit <= 0 {
+		log.Fatal("RateLimit must be greater than 0")
+	}
+
 	// use workerpool pattern to limit maximum number of outgoing connections to server
 	jobCh := make(chan struct{})
 	for i := 0; i < cfg.RateLimit; i++ {

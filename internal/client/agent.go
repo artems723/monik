@@ -6,11 +6,13 @@ import (
 	"log"
 	"math/rand"
 	"runtime"
+	"sync"
 )
 
 type Agent struct {
 	storage map[string]*Metric
 	key     string
+	mu      sync.RWMutex
 }
 
 func NewAgent(key string) Agent {
@@ -22,6 +24,8 @@ func (agent *Agent) UpdateMetrics() {
 	// Read memory stats
 	runtime.ReadMemStats(&rtm)
 	// Update metrics
+	agent.mu.Lock()
+	defer agent.mu.Unlock()
 	agent.storage["Alloc"] = NewGaugeMetric("Alloc", float64(rtm.Alloc), agent.key)
 	agent.storage["BuckHashSys"] = NewGaugeMetric("BuckHashSys", float64(rtm.BuckHashSys), agent.key)
 	agent.storage["Frees"] = NewGaugeMetric("Frees", float64(rtm.Frees), agent.key)
@@ -61,6 +65,8 @@ func (agent *Agent) UpdateMetrics() {
 }
 
 func (agent *Agent) getValues() []*Metric {
+	agent.mu.RLock()
+	defer agent.mu.RUnlock()
 	values := make([]*Metric, 0, len(agent.storage))
 	for _, v := range agent.storage {
 		values = append(values, v)
@@ -89,10 +95,14 @@ func (agent *Agent) SendData(URL string, client HTTPClient) {
 		return
 	}
 	log.Printf("Got response from server: %v", result)
+	agent.resetCounter()
+	log.Printf("Metrics were succesfully sent")
+}
 
-	// reset the counter
+func (agent *Agent) resetCounter() {
+	agent.mu.Lock()
+	defer agent.mu.Unlock()
 	if _, ok := agent.storage["PollCount"]; ok {
 		*agent.storage["PollCount"].Delta = 0
 	}
-	log.Printf("Metrics were succesfully sent")
 }
