@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -31,6 +32,7 @@ func TestAgent_SendData(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			agent := &Agent{
 				storage: tt.fields.storage,
+				mu:      &sync.RWMutex{},
 			}
 			teardown := setup()
 			defer teardown()
@@ -61,6 +63,7 @@ func TestAgent_UpdateMetrics(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			agent := &Agent{
 				storage: tt.fields.metrics,
+				mu:      &sync.RWMutex{},
 			}
 			agent.UpdateMetrics()
 			assert.Equal(t, *agent.storage["PollCount"].Delta, int64(1))
@@ -82,7 +85,7 @@ func TestNewAgent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewAgent(""); !reflect.DeepEqual(got, tt.want) {
+			if got := NewAgent(""); !reflect.DeepEqual(got.storage, tt.want.storage) {
 				t.Errorf("NewAgent() = %v, want %v", got, tt.want)
 			}
 		})

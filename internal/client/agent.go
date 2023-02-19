@@ -12,11 +12,15 @@ import (
 type Agent struct {
 	storage map[string]*Metric
 	key     string
-	mu      sync.RWMutex
+	mu      *sync.RWMutex
 }
 
 func NewAgent(key string) Agent {
-	return Agent{storage: make(map[string]*Metric), key: key}
+	return Agent{
+		storage: make(map[string]*Metric),
+		key:     key,
+		mu:      &sync.RWMutex{},
+	}
 }
 
 func (agent *Agent) UpdateMetrics() {
