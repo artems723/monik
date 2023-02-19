@@ -28,6 +28,7 @@ type config struct {
 	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 	PollInterval   time.Duration `env:"POLL_INTERVAL"`
 	Key            string        `env:"KEY"`
+	RateLimit      int           `env:"RATE_LIMIT"`
 }
 
 func main() {
@@ -38,13 +39,14 @@ func main() {
 	flag.DurationVar(&cfg.ReportInterval, "r", 10*time.Second, "time interval in seconds after which agent reports metrics to server.")
 	flag.DurationVar(&cfg.PollInterval, "p", 2*time.Second, "time interval in seconds after which agent updates metrics.")
 	flag.StringVar(&cfg.Key, "k", "", "key for hashing")
+	flag.IntVar(&cfg.RateLimit, "l", 10, "maximum number of outgoing requests to the server")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("Using config: Address: %s, ReportInterval: %v, PollInterval: %v, Key: %s", cfg.Address, cfg.ReportInterval, cfg.PollInterval, cfg.Key)
+	log.Printf("Using config: Address: %s, ReportInterval: %v, PollInterval: %v, Key: %s, RateLimit: %d", cfg.Address, cfg.ReportInterval, cfg.PollInterval, cfg.Key, cfg.RateLimit)
 
 	serverAddr := "http://" + cfg.Address
 
