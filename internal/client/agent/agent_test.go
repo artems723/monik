@@ -1,6 +1,7 @@
-package client
+package agent
 
 import (
+	"github.com/artems723/monik/internal/client"
 	"github.com/artems723/monik/internal/client/httpClient"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 
 func TestAgent_SendData(t *testing.T) {
 	type fields struct {
-		storage map[string]*Metric
+		storage map[string]*client.Metric
 	}
 	type args struct {
 		URL    string
@@ -25,7 +26,7 @@ func TestAgent_SendData(t *testing.T) {
 	}{
 		{
 			name:   "test send",
-			fields: fields{storage: make(map[string]*Metric)},
+			fields: fields{storage: make(map[string]*client.Metric)},
 			args:   args{URL: "", client: httpClient.NewHTTPClient()},
 		},
 	}
@@ -34,6 +35,7 @@ func TestAgent_SendData(t *testing.T) {
 			agent := &Agent{
 				storage: tt.fields.storage,
 				mu:      &sync.RWMutex{},
+				client:  httpClient.NewHTTPClient(),
 			}
 			teardown := setup()
 			defer teardown()
@@ -41,15 +43,15 @@ func TestAgent_SendData(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			agent.storage["NumGC"] = NewGaugeMetric("NumGC", 222, "")
-			agent.SendData(server.URL, tt.args.client)
+			agent.storage["NumGC"] = client.NewGaugeMetric("NumGC", 222, "")
+			agent.SendData(server.URL)
 		})
 	}
 }
 
 func TestAgent_UpdateMetrics(t *testing.T) {
 	type fields struct {
-		metrics map[string]*Metric
+		metrics map[string]*client.Metric
 	}
 	tests := []struct {
 		name   string
@@ -57,7 +59,7 @@ func TestAgent_UpdateMetrics(t *testing.T) {
 	}{
 		{
 			name:   "test update metrics",
-			fields: fields{metrics: make(map[string]*Metric)},
+			fields: fields{metrics: make(map[string]*client.Metric)},
 		},
 	}
 	for _, tt := range tests {
@@ -81,12 +83,12 @@ func TestNewAgent(t *testing.T) {
 	}{
 		{
 			name: "test new agent",
-			want: Agent{storage: make(map[string]*Metric)},
+			want: Agent{storage: make(map[string]*client.Metric)},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewAgent(""); !reflect.DeepEqual(got.storage, tt.want.storage) {
+			if got := NewAgent("", httpClient.NewHTTPClient()); !reflect.DeepEqual(got.storage, tt.want.storage) {
 				t.Errorf("NewAgent() = %v, want %v", got, tt.want)
 			}
 		})

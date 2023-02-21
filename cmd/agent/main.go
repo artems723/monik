@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/artems723/monik/internal/client"
+	"github.com/artems723/monik/internal/client/agent"
 	"github.com/artems723/monik/internal/client/httpClient"
 	"github.com/caarlos0/env/v6"
 	"log"
@@ -36,8 +36,8 @@ func main() {
 
 	serverAddr := "http://" + cfg.Address
 
-	httpClient := httpClient.NewHTTPClient()
-	agent := client.NewAgent(cfg.Key)
+	cl := httpClient.NewHTTPClient()
+	agent := agent.NewAgent(cfg.Key, cl)
 
 	// infinite loop for polling counters
 	pollIntervalTicker1 := time.NewTicker(cfg.PollInterval)
@@ -59,19 +59,18 @@ func main() {
 	}
 
 	// use workerpool pattern to limit maximum number of outgoing connections to server
-	jobCh := make(chan struct{})
-	for i := 0; i < cfg.RateLimit; i++ {
-		go func() {
-			for range jobCh {
-				// send counters to server
-				agent.SendData(serverAddr, httpClient)
-			}
-		}()
-	}
+	//jobCh := make(chan struct{})
+	//for i := 0; i < cfg.RateLimit; i++ {
+	//	go func() {
+	//		for range jobCh {
+	//			agent.SendData(serverAddr)
+	//		}
+	//	}()
+	//}
 	// infinite loop for sending counters to server
 	reportIntervalTicker := time.NewTicker(cfg.ReportInterval)
-	for {
-		<-reportIntervalTicker.C
-		jobCh <- struct{}{}
+	for range reportIntervalTicker.C {
+		agent.SendData(serverAddr)
+		//jobCh <- struct{}{}
 	}
 }
