@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/artems723/monik/internal/client/httpClient"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 	"log"
@@ -81,7 +82,7 @@ func (agent *Agent) getValues() []*Metric {
 }
 
 // Send metrics to http server
-func (agent *Agent) SendData(URL string, client HTTPClient) {
+func (agent *Agent) SendData(URL string, client httpClient.HTTPClient) {
 	urlString := fmt.Sprintf("%s/updates/", URL)
 	metrics := agent.getValues()
 	m, err := json.Marshal(metrics)
@@ -90,7 +91,7 @@ func (agent *Agent) SendData(URL string, client HTTPClient) {
 		return
 	}
 	var result []Metric
-	_, err = client.client.R().
+	_, err = client.Client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept-Encoding", "gzip").
 		SetBody(m).

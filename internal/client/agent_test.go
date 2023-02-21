@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/artems723/monik/internal/client/httpClient"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +16,7 @@ func TestAgent_SendData(t *testing.T) {
 	}
 	type args struct {
 		URL    string
-		client HTTPClient
+		client httpClient.HTTPClient
 	}
 	tests := []struct {
 		name   string
@@ -25,7 +26,7 @@ func TestAgent_SendData(t *testing.T) {
 		{
 			name:   "test send",
 			fields: fields{storage: make(map[string]*Metric)},
-			args:   args{URL: "", client: NewHTTPClient()},
+			args:   args{URL: "", client: httpClient.NewHTTPClient()},
 		},
 	}
 	for _, tt := range tests {

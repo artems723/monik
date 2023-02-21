@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/artems723/monik/internal/client"
+	"github.com/artems723/monik/internal/client/httpClient"
 	"github.com/caarlos0/env/v6"
 	"log"
 	"time"
@@ -35,7 +36,7 @@ func main() {
 
 	serverAddr := "http://" + cfg.Address
 
-	httpClient := client.NewHTTPClient()
+	httpClient := httpClient.NewHTTPClient()
 	agent := client.NewAgent(cfg.Key)
 
 	// infinite loop for polling counters
