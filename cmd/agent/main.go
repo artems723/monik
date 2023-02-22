@@ -22,8 +22,8 @@ func main() {
 	cfg := config{}
 	//Parse config from flag
 	flag.StringVar(&cfg.Address, "a", "127.0.0.1:8080", "server address.")
-	flag.DurationVar(&cfg.ReportInterval, "r", 10*time.Second, "time interval in seconds after which agent reports metrics to server.")
-	flag.DurationVar(&cfg.PollInterval, "p", 2*time.Second, "time interval in seconds after which agent updates metrics.")
+	flag.DurationVar(&cfg.ReportInterval, "r", 10*time.Second, "time interval in seconds after which a reports metrics to server.")
+	flag.DurationVar(&cfg.PollInterval, "p", 2*time.Second, "time interval in seconds after which a updates metrics.")
 	flag.StringVar(&cfg.Key, "k", "", "key for hashing")
 	flag.IntVar(&cfg.RateLimit, "l", 10, "maximum number of outgoing requests to the server")
 	flag.Parse()
@@ -37,20 +37,20 @@ func main() {
 	serverAddr := "http://" + cfg.Address
 
 	cl := httpClient.NewHTTPClient()
-	agent := agent.NewAgent(cfg.Key, cl)
+	a := agent.NewAgent(cfg.Key, cl)
 
 	// infinite loop for polling counters
 	pollIntervalTicker1 := time.NewTicker(cfg.PollInterval)
 	go func() {
 		for range pollIntervalTicker1.C {
-			agent.UpdateMetrics()
+			a.UpdateMetrics()
 		}
 	}()
 	// infinite loop for polling additional counters
 	pollIntervalTicker2 := time.NewTicker(cfg.PollInterval)
 	go func() {
 		for range pollIntervalTicker2.C {
-			agent.UpdateAdditionalMetrics()
+			a.UpdateAdditionalMetrics()
 		}
 	}()
 
@@ -63,14 +63,14 @@ func main() {
 	//for i := 0; i < cfg.RateLimit; i++ {
 	//	go func() {
 	//		for range jobCh {
-	//			agent.SendData(serverAddr)
+	//			a.SendData(serverAddr)
 	//		}
 	//	}()
 	//}
 	// infinite loop for sending counters to server
 	reportIntervalTicker := time.NewTicker(cfg.ReportInterval)
 	for range reportIntervalTicker.C {
-		agent.SendData(serverAddr)
+		a.SendData(serverAddr)
 		//jobCh <- struct{}{}
 	}
 }
