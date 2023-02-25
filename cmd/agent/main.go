@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/artems723/monik/internal/client/agent"
-	"github.com/artems723/monik/internal/client/httpClient"
+	"github.com/artems723/monik/internal/client/httpclient"
 	"github.com/caarlos0/env/v6"
 	"log"
 	"time"
@@ -22,8 +22,8 @@ func main() {
 	cfg := config{}
 	//Parse config from flag
 	flag.StringVar(&cfg.Address, "a", "127.0.0.1:8080", "server address.")
-	flag.DurationVar(&cfg.ReportInterval, "r", 10*time.Second, "time interval in seconds after which a reports metrics to server.")
-	flag.DurationVar(&cfg.PollInterval, "p", 2*time.Second, "time interval in seconds after which a updates metrics.")
+	flag.DurationVar(&cfg.ReportInterval, "r", 10*time.Second, "time interval in seconds for sending metrics to server.")
+	flag.DurationVar(&cfg.PollInterval, "p", 2*time.Second, "time interval in seconds for updating metrics.")
 	flag.StringVar(&cfg.Key, "k", "", "key for hashing")
 	flag.IntVar(&cfg.RateLimit, "l", 10, "maximum number of outgoing requests to the server")
 	flag.Parse()
@@ -35,8 +35,8 @@ func main() {
 	log.Printf("Using config: Address: %s, ReportInterval: %v, PollInterval: %v, Key: %s, RateLimit: %d", cfg.Address, cfg.ReportInterval, cfg.PollInterval, cfg.Key, cfg.RateLimit)
 
 	// create agent with httpClient
-	cl := httpClient.NewHTTPClient(cfg.RateLimit)
-	a := agent.NewAgent(cfg.Key, cl)
+	cl := httpclient.New(cfg.RateLimit)
+	a := agent.New(cfg.Key, cl)
 
 	// infinite loop for polling counters
 	pollIntervalTicker1 := time.NewTicker(cfg.PollInterval)

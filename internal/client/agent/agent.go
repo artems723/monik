@@ -21,7 +21,7 @@ type Agent struct {
 	mu      *sync.RWMutex
 }
 
-func NewAgent(key string, cl Client) Agent {
+func New(key string, cl Client) Agent {
 	return Agent{
 		storage: make(map[string]*Metric),
 		client:  cl,

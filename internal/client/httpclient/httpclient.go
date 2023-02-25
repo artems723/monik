@@ -1,4 +1,4 @@
-package httpClient
+package httpclient
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ type HTTPClient struct {
 	jobs      chan struct{}
 }
 
-func NewHTTPClient(rateLimit int) HTTPClient {
+func New(rateLimit int) HTTPClient {
 	client := resty.New()
 	if rateLimit <= 0 {
 		log.Fatal("RateLimit must be greater than 0")
