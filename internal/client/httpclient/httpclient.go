@@ -15,9 +15,6 @@ type HTTPClient struct {
 
 func New(rateLimit int) HTTPClient {
 	client := resty.New()
-	if rateLimit <= 0 {
-		log.Fatal("RateLimit must be greater than 0")
-	}
 	return HTTPClient{
 		client:    client,
 		rateLimit: rateLimit,
@@ -29,7 +26,7 @@ func (c HTTPClient) SendData(metrics []*agent.Metric, URL string) ([]agent.Metri
 	c.jobs <- struct{}{} // acquire worker
 	m, err := json.Marshal(metrics)
 	if err != nil {
-		log.Printf("httpClient.SendData: unable to marshal. Error: %v. Metric: %v", err, metrics)
+		log.Printf("httpclient.SendData: unable to marshal. Error: %v. Metric: %v", err, metrics)
 		return nil, err
 	}
 	var result []agent.Metric
@@ -40,7 +37,7 @@ func (c HTTPClient) SendData(metrics []*agent.Metric, URL string) ([]agent.Metri
 		SetResult(&result).
 		Post(URL)
 	if err != nil {
-		log.Printf("httpClient.SendData: error sending request: %s", err)
+		log.Printf("httpclient.SendData: error sending request: %s", err)
 		return nil, err
 	}
 	<-c.jobs // release worker

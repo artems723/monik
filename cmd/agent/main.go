@@ -33,7 +33,9 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("Using config: Address: %s, ReportInterval: %v, PollInterval: %v, Key: %s, RateLimit: %d", cfg.Address, cfg.ReportInterval, cfg.PollInterval, cfg.Key, cfg.RateLimit)
-
+	if cfg.RateLimit <= 0 {
+		log.Fatal("RateLimit must be greater than 0")
+	}
 	// create agent with httpClient
 	cl := httpclient.New(cfg.RateLimit)
 	a := agent.New(cfg.Key, cl)
@@ -53,20 +55,10 @@ func main() {
 		}
 	}()
 
-	// use workerpool pattern to limit maximum number of outgoing connections to server
-	//jobCh := make(chan struct{})
-	//for i := 0; i < cfg.RateLimit; i++ {
-	//	go func() {
-	//		for range jobCh {
-	//			a.SendData(serverAddr)
-	//		}
-	//	}()
-	//}
+	serverAddr := "http://" + cfg.Address
 	// infinite loop for sending counters to server
 	reportIntervalTicker := time.NewTicker(cfg.ReportInterval)
-	serverAddr := "http://" + cfg.Address
 	for range reportIntervalTicker.C {
 		a.SendData(serverAddr)
-		//jobCh <- struct{}{}
 	}
 }
