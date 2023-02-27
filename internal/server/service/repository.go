@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"github.com/artems723/monik/internal/server/domain"
 	"golang.org/x/net/context"
 )
@@ -13,5 +12,3 @@ type Repository interface {
 	WriteAllMetrics(ctx context.Context, metrics *domain.Metrics) error
 	PingRepo() error
 }
-
-var ErrNotFound = errors.New("not found")
