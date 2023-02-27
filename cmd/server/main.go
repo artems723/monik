@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"github.com/artems723/monik/internal/server"
+	"github.com/artems723/monik/internal/server/config"
 	"github.com/artems723/monik/internal/server/handler"
+	"github.com/artems723/monik/internal/server/httpserver"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/caarlos0/env/v6"
@@ -19,7 +20,7 @@ import (
 
 func main() {
 	// Create and read config
-	cfg := server.Config{}
+	cfg := config.Config{}
 	// Parse config from flag
 	flag.StringVar(&cfg.Address, "a", ":8080", "server address.")
 	flag.BoolVar(&cfg.Restore, "r", true, "bool value determines whether to load the initial values from the specified file when the server starts.")
@@ -38,7 +39,7 @@ func main() {
 	log.Printf("Using config: Address: %s, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s", cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN)
 
 	// Create storage
-	var repo storage.Repository
+	var repo service.Repository
 	if cfg.DatabaseDSN != "" {
 		repo, err = storage.NewPostgresStorage(cfg.DatabaseDSN)
 		if err != nil {
@@ -61,7 +62,7 @@ func main() {
 	// Create handler
 	h := handler.New(serv, cfg.Key, cfg.DatabaseDSN)
 	// Create server
-	srv := server.New()
+	srv := httpserver.New()
 
 	// Create channel for graceful shutdown
 	done := make(chan os.Signal, 1)

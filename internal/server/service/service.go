@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/artems723/monik/internal/server"
+	"github.com/artems723/monik/internal/server/config"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/pkg/errors"
@@ -11,12 +11,12 @@ import (
 )
 
 type Service struct {
-	storage  storage.Repository
+	storage  Repository
 	fStorage *storage.FileStorage
-	config   server.Config
+	config   config.Config
 }
 
-func New(s storage.Repository, c server.Config) *Service {
+func New(s Repository, c config.Config) *Service {
 	return &Service{storage: s, config: c}
 }
 
