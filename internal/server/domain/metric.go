@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -90,13 +89,7 @@ func (m *Metric) Validate(key string) error {
 		case MetricTypeCounter:
 			src = fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta)
 		}
-		h1 := hash(src, key)
-		h2 := m.Hash
-		b1 := []byte(h1)
-		b2 := []byte(h2)
-
-		i := bytes.Compare(b1, b2)
-		if i != 0 {
+		if hash(src, key) != m.Hash {
 			return ErrWrongKey
 		}
 	}

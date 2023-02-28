@@ -1,20 +1,33 @@
-package client
+package agent
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 	"log"
 	"math/rand"
 	"runtime"
+	"sync"
 )
+
+type Client interface {
+	SendData([]*Metric, string) ([]Metric, error)
+}
 
 type Agent struct {
 	storage map[string]*Metric
+	client  Client
 	key     string
+	mu      *sync.RWMutex
 }
 
-func NewAgent(key string) Agent {
-	return Agent{storage: make(map[string]*Metric), key: key}
+func New(key string, cl Client) Agent {
+	return Agent{
+		storage: make(map[string]*Metric),
+		client:  cl,
+		key:     key,
+		mu:      &sync.RWMutex{},
+	}
 }
 
 func (agent *Agent) UpdateMetrics() {
@@ -22,6 +35,8 @@ func (agent *Agent) UpdateMetrics() {
 	// Read memory stats
 	runtime.ReadMemStats(&rtm)
 	// Update metrics
+	agent.mu.Lock()
+	defer agent.mu.Unlock()
 	agent.storage["Alloc"] = NewGaugeMetric("Alloc", float64(rtm.Alloc), agent.key)
 	agent.storage["BuckHashSys"] = NewGaugeMetric("BuckHashSys", float64(rtm.BuckHashSys), agent.key)
 	agent.storage["Frees"] = NewGaugeMetric("Frees", float64(rtm.Frees), agent.key)
@@ -61,6 +76,8 @@ func (agent *Agent) UpdateMetrics() {
 }
 
 func (agent *Agent) getValues() []*Metric {
+	agent.mu.RLock()
+	defer agent.mu.RUnlock()
 	values := make([]*Metric, 0, len(agent.storage))
 	for _, v := range agent.storage {
 		values = append(values, v)
@@ -69,30 +86,34 @@ func (agent *Agent) getValues() []*Metric {
 }
 
 // Send metrics to http server
-func (agent *Agent) SendData(URL string, client HTTPClient) {
-	urlString := fmt.Sprintf("%s/updates/", URL)
+func (agent *Agent) SendData(serverAddr string) {
+	URL := fmt.Sprintf("%s/updates/", serverAddr)
 	metrics := agent.getValues()
-	m, err := json.Marshal(metrics)
+	m, err := agent.client.SendData(metrics, URL)
 	if err != nil {
-		log.Printf("agent.SendData: unable to marshal. Error: %v. Metric: %v", err, metrics)
 		return
 	}
-	var result []Metric
-	_, err = client.client.R().
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept-Encoding", "gzip").
-		SetBody(m).
-		SetResult(&result).
-		Post(urlString)
-	if err != nil {
-		log.Printf("Error sending request: %s", err)
-		return
-	}
-	log.Printf("Got response from server: %v", result)
+	log.Printf("Got response from server: %v", m)
+	agent.resetCounter()
+	log.Printf("Metrics were succesfully sent")
+}
 
-	// reset the counter
+func (agent *Agent) resetCounter() {
+	agent.mu.Lock()
+	defer agent.mu.Unlock()
 	if _, ok := agent.storage["PollCount"]; ok {
 		*agent.storage["PollCount"].Delta = 0
 	}
-	log.Printf("Metrics were succesfully sent")
+}
+
+func (agent *Agent) UpdateAdditionalMetrics() {
+	v, _ := mem.VirtualMemory()
+	c, _ := cpu.Percent(0, false)
+	// Update metrics
+	agent.mu.Lock()
+	defer agent.mu.Unlock()
+	agent.storage["TotalMemory"] = NewGaugeMetric("TotalMemory", float64(v.Total), agent.key)
+	agent.storage["FreeMemory"] = NewGaugeMetric("FreeMemory", float64(v.Free), agent.key)
+	agent.storage["CPUutilization1"] = NewGaugeMetric("CPUutilization1", c[0], agent.key)
+	log.Printf("Got additional counters")
 }

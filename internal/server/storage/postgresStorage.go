@@ -3,20 +3,18 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"embed"
 	"errors"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/jmoiron/sqlx"
 	"log"
+	"os"
+	"path/filepath"
 	"time"
 )
 
 type PostgresStorage struct {
 	db *sqlx.DB
 }
-
-//go:embed sql/*
-var SQL embed.FS
 
 func NewPostgresStorage(databaseDSN string) (*PostgresStorage, error) {
 	db, err := sqlx.Connect("pgx", databaseDSN)
@@ -25,7 +23,7 @@ func NewPostgresStorage(databaseDSN string) (*PostgresStorage, error) {
 	}
 
 	// Create table if not exists
-	file, err := SQL.ReadFile("sql/metrics_table_up.sql")
+	file, err := os.ReadFile(filepath.Join("migrations", "metrics_table_up.sql"))
 	if err != nil {
 		return nil, err
 	}
@@ -48,17 +46,23 @@ func (p *PostgresStorage) GetMetric(ctx context.Context, metricName string) (*do
 	return &m, nil
 }
 
-func (p *PostgresStorage) WriteMetric(ctx context.Context, metric *domain.Metric) error {
+func (p *PostgresStorage) WriteMetric(ctx context.Context, metric *domain.Metric) (*domain.Metric, error) {
+	// add metric to storage
 	tx := p.db.MustBegin()
 	_, err := tx.NamedExec("INSERT INTO metrics (name, type, delta, value) VALUES (:name, :type, :delta, :value) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, type = EXCLUDED.type, delta = EXCLUDED.delta, value = EXCLUDED.value", &metric)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	// Get metric from db to return it
+	m, err := p.GetMetric(ctx, metric.ID)
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (p *PostgresStorage) GetAllMetrics(ctx context.Context) (*domain.Metrics, error) {

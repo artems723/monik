@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/artems723/monik/internal/server"
+	"github.com/artems723/monik/internal/server/config"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
@@ -51,7 +51,7 @@ func TestHandler_mainPage(t *testing.T) {
 		want   want
 	}{
 		{
-			fields: fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
+			fields: fields{s: *service.New(storage.NewMemStorage(), config.Config{StoreInterval: 1 * time.Second})},
 			name:   "test main page",
 			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
 			want:   want{"text/html", 200, "Name: Alloc, Type: gauge, Value: 20.200000", "Alloc", 20.20},
@@ -59,9 +59,7 @@ func TestHandler_mainPage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := &Handler{
-				s: &tt.fields.s,
-			}
+			h := New(&tt.fields.s, "", "")
 
 			// add metric to storage
 			metric := domain.NewGaugeMetric(tt.want.metricName, tt.want.metricValue)

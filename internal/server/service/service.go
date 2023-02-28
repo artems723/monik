@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/artems723/monik/internal/server"
+	"github.com/artems723/monik/internal/server/config"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/pkg/errors"
@@ -11,29 +11,29 @@ import (
 )
 
 type Service struct {
-	storage  storage.Repository
-	fStorage storage.Repository
-	config   server.Config
+	storage  Repository
+	fStorage *storage.FileStorage
+	config   config.Config
 }
 
-func New(s storage.Repository, c server.Config) *Service {
+func New(s Repository, c config.Config) *Service {
 	return &Service{storage: s, config: c}
 }
 
-func (s *Service) WriteMetric(ctx context.Context, metric *domain.Metric) error {
+func (s *Service) WriteMetric(ctx context.Context, metric *domain.Metric) (*domain.Metric, error) {
 	// Increment delta value of counter metric
 	if metric.MType == domain.MetricTypeCounter {
 		// Get current metric from storage to sum deltas
 		m, err := s.storage.GetMetric(ctx, metric.ID)
 		// Check for errors
 		if err != nil && !errors.Is(err, storage.ErrNotFound) {
-			return errors.New("storage.GetMetric: " + err.Error())
+			return nil, errors.New("storage.GetMetric: " + err.Error())
 		}
 		// Increment delta if current value exist
 		if !errors.Is(err, storage.ErrNotFound) {
 			// Check if current metric in not 'counter' type
 			if m.MType != domain.MetricTypeCounter {
-				return ErrMTypeMismatch
+				return nil, ErrMTypeMismatch
 			}
 			// Add delta to current value
 			*metric.Delta += *m.Delta
@@ -42,7 +42,7 @@ func (s *Service) WriteMetric(ctx context.Context, metric *domain.Metric) error 
 	// Flush hash value. We always store metrics without hash
 	metric.Hash = ""
 	// Write metric to storage
-	err := s.storage.WriteMetric(ctx, metric)
+	m, err := s.storage.WriteMetric(ctx, metric)
 	// Write metric to file if storeInterval == 0s
 	if s.config.StoreInterval == 0*time.Second {
 		err1 := s.fStorage.WriteMetric(ctx, metric)
@@ -50,7 +50,7 @@ func (s *Service) WriteMetric(ctx context.Context, metric *domain.Metric) error 
 			err = errors.Wrap(err, err1.Error())
 		}
 	}
-	return err
+	return m, err
 }
 
 func (s *Service) GetMetric(ctx context.Context, metric *domain.Metric) (*domain.Metric, error) {
@@ -67,7 +67,7 @@ func (s *Service) GetAllMetrics(ctx context.Context) (*domain.Metrics, error) {
 
 func (s *Service) WriteMetrics(ctx context.Context, metrics *domain.Metrics) error {
 	for _, metric := range metrics.Metrics {
-		err := s.WriteMetric(ctx, metric)
+		_, err := s.WriteMetric(ctx, metric)
 		if err != nil {
 			return err
 		}

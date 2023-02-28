@@ -22,11 +22,16 @@ func (m *MemStorage) GetMetric(ctx context.Context, metricName string) (*domain.
 	return currentVal, nil
 }
 
-func (m *MemStorage) WriteMetric(ctx context.Context, metric *domain.Metric) error {
+func (m *MemStorage) WriteMetric(ctx context.Context, metric *domain.Metric) (*domain.Metric, error) {
 	// add metric to storage
 	m.s[metric.ID] = metric
 	log.Printf("Storage was updated with metric: %v", metric)
-	return nil
+	// Get metric from storage to return it
+	res, err := m.GetMetric(ctx, metric.ID)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (m *MemStorage) GetAllMetrics(ctx context.Context) (*domain.Metrics, error) {

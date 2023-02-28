@@ -3,10 +3,8 @@ package handler
 import (
 	"errors"
 	"github.com/artems723/monik/internal/server/storage"
-	"html/template"
 	"log"
 	"net/http"
-	"path/filepath"
 )
 
 func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
@@ -25,9 +23,7 @@ func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html")
 	// Write response
-	path := filepath.Join("templates", "mainPage.html")
-	tmpl, _ := template.ParseFiles(path)
-	err = tmpl.Execute(w, allMetrics.Metrics)
+	err = h.tmpl.Execute(w, allMetrics.Metrics)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
