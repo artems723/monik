@@ -23,6 +23,9 @@ func New(rateLimit int) HTTPClient {
 }
 
 func (c HTTPClient) SendData(metrics []*agent.Metric, URL string) ([]agent.Metric, error) {
+	defer func() {
+		<-c.jobs // release worker
+	}()
 	c.jobs <- struct{}{} // acquire worker
 	m, err := json.Marshal(metrics)
 	if err != nil {
@@ -40,6 +43,5 @@ func (c HTTPClient) SendData(metrics []*agent.Metric, URL string) ([]agent.Metri
 		log.Printf("httpclient.SendData: error sending request: %s", err)
 		return nil, err
 	}
-	<-c.jobs // release worker
 	return result, nil
 }
