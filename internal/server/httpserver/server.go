@@ -20,7 +20,7 @@ func (s *Server) Run(serverAddr string, r *chi.Mux) error {
 		Addr:           serverAddr,
 		MaxHeaderBytes: 1 << 20, // 1MB
 		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		WriteTimeout:   31 * time.Second,
 		Handler:        r,
 	}
 	return s.httpServer.ListenAndServe()

@@ -11,7 +11,6 @@ import (
 	"golang.org/x/net/context"
 	"log"
 	"net/http"
-	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"path/filepath"

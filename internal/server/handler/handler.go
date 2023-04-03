@@ -37,6 +37,8 @@ func (h *Handler) InitRoutes() *chi.Mux {
 	r.Use(middleware.Compress(5))
 	r.Use(middleware.Recoverer)
 
+	r.Mount("/debug", middleware.Profiler())
+
 	r.Route("/update", func(r chi.Router) {
 		r.Post("/{metricType}/{metricName}/{metricValue}", h.updateMetric)
 		r.Post("/", h.updateMetricJSON)
