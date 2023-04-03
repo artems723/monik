@@ -2,11 +2,12 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/artems723/monik/internal/server/domain"
-	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/artems723/monik/internal/server/domain"
+	"github.com/go-chi/chi/v5"
 )
 
 func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {

@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/artems723/monik/internal/server/domain"
 	"io"
 	"log"
 	"os"
+
+	"github.com/artems723/monik/internal/server/domain"
 )
 
 type FileStorage struct {

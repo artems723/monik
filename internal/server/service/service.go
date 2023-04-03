@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"log"
+	"time"
+
 	"github.com/artems723/monik/internal/server/config"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/pkg/errors"
-	"log"
-	"time"
 )
 
 type Service struct {

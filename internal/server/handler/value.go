@@ -3,13 +3,14 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"log"
+	"net/http"
+	"strconv"
+
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
-	"log"
-	"net/http"
-	"strconv"
 )
 
 func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {

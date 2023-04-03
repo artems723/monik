@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
 	"github.com/artems723/monik/internal/server/config"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"time"
 )
 
 func TestHandler_updateMetric(t *testing.T) {

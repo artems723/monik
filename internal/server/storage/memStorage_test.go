@@ -2,9 +2,10 @@ package storage
 
 import (
 	"context"
+	"testing"
+
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestMemStorage_GetMetric(t *testing.T) {

@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/artems723/monik/internal/server/domain"
-	"github.com/jmoiron/sqlx"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/artems723/monik/internal/server/domain"
+	"github.com/jmoiron/sqlx"
 )
 
 type PostgresStorage struct {

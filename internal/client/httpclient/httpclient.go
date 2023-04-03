@@ -2,9 +2,10 @@ package httpclient
 
 import (
 	"encoding/json"
+	"log"
+
 	"github.com/artems723/monik/internal/client/agent"
 	"github.com/go-resty/resty/v2"
-	"log"
 )
 
 type HTTPClient struct {

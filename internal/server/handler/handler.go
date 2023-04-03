@@ -2,11 +2,12 @@ package handler
 
 import (
 	"errors"
+	"html/template"
+	"path/filepath"
+
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"html/template"
-	"path/filepath"
 )
 
 type Handler struct {
@@ -31,7 +32,8 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	// Using built-in middleware
 	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
+	// Commented out because of pprof optimization
+	//r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.AllowContentEncoding("gzip"))
 	r.Use(middleware.Compress(5))

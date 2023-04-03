@@ -1,11 +1,6 @@
 package handler
 
 import (
-	"github.com/artems723/monik/internal/server/config"
-	"github.com/artems723/monik/internal/server/domain"
-	"github.com/artems723/monik/internal/server/service"
-	"github.com/artems723/monik/internal/server/storage"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
 	"net/http"
@@ -15,6 +10,12 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/artems723/monik/internal/server/config"
+	"github.com/artems723/monik/internal/server/domain"
+	"github.com/artems723/monik/internal/server/service"
+	"github.com/artems723/monik/internal/server/storage"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {

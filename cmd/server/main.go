@@ -2,13 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/artems723/monik/internal/server/config"
-	"github.com/artems723/monik/internal/server/handler"
-	"github.com/artems723/monik/internal/server/httpserver"
-	"github.com/artems723/monik/internal/server/service"
-	"github.com/artems723/monik/internal/server/storage"
-	"github.com/caarlos0/env/v6"
-	"golang.org/x/net/context"
 	"log"
 	"net/http"
 	"os"
@@ -16,6 +9,14 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+
+	"github.com/artems723/monik/internal/server/config"
+	"github.com/artems723/monik/internal/server/handler"
+	"github.com/artems723/monik/internal/server/httpserver"
+	"github.com/artems723/monik/internal/server/service"
+	"github.com/artems723/monik/internal/server/storage"
+	"github.com/caarlos0/env/v6"
+	"golang.org/x/net/context"
 )
 
 func main() {

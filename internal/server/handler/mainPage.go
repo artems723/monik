@@ -2,9 +2,10 @@ package handler
 
 import (
 	"errors"
-	"github.com/artems723/monik/internal/server/storage"
 	"log"
 	"net/http"
+
+	"github.com/artems723/monik/internal/server/storage"
 )
 
 func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
