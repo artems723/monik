@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/artems723/monik/internal/server"
+	"github.com/artems723/monik/internal/server/config"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
@@ -46,14 +46,14 @@ func TestHandler_getValue(t *testing.T) {
 	}{
 		{
 			name:      "test get gauge value",
-			fields:    fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second}), valGauge: 20.201},
+			fields:    fields{s: *service.New(storage.NewMemStorage(), config.Config{StoreInterval: 1 * time.Second}), valGauge: 20.201},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
 			want:      want{"text/plain; charset=utf-8", 200, "20.201"},
 			urlParams: urlParams{"gauge", "Alloc"},
 		},
 		{
 			name:      "test get counter value",
-			fields:    fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second}), valCounter: 20},
+			fields:    fields{s: *service.New(storage.NewMemStorage(), config.Config{StoreInterval: 1 * time.Second}), valCounter: 20},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
 			want:      want{"text/plain; charset=utf-8", 200, "20"},
 			urlParams: urlParams{"counter", "PollCount"},
@@ -79,7 +79,7 @@ func TestHandler_getValue(t *testing.T) {
 				metric = domain.NewCounterMetric(tt.urlParams.metricName, tt.fields.valCounter)
 			}
 
-			tt.fields.s.WriteMetric(metric)
+			tt.fields.s.WriteMetric(tt.args.r.Context(), metric)
 
 			// handler call
 			h.getValue(tt.args.w, tt.args.r)
@@ -119,7 +119,7 @@ func TestHandler_getValueJSON(t *testing.T) {
 	}{
 		{
 			name:   "test success path",
-			fields: fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
+			fields: fields{s: *service.New(storage.NewMemStorage(), config.Config{StoreInterval: 1 * time.Second})},
 			want: want{
 				contentType: "application/json",
 				statusCode:  200,
@@ -140,7 +140,7 @@ func TestHandler_getValueJSON(t *testing.T) {
 			}
 
 			// add metric to storage
-			tt.fields.s.WriteMetric(tt.args.metric)
+			tt.fields.s.WriteMetric(tt.args.r.Context(), tt.args.metric)
 
 			// Set content-type
 			tt.args.r.Header.Set("Content-Type", tt.args.contentType)

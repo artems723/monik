@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"github.com/artems723/monik/internal/server"
+	"github.com/artems723/monik/internal/server/config"
 	"github.com/artems723/monik/internal/server/handler"
+	"github.com/artems723/monik/internal/server/httpserver"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
 	"github.com/caarlos0/env/v6"
@@ -13,41 +14,58 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 )
 
 func main() {
 	// Create and read config
-	cfg := server.Config{}
-	//Parse config from flag
-	flag.StringVar(&cfg.Address, "a", "127.0.0.1:8080", "server address.")
+	cfg := config.Config{}
+	// Parse config from flag
+	flag.StringVar(&cfg.Address, "a", ":8080", "server address.")
 	flag.BoolVar(&cfg.Restore, "r", true, "bool value determines whether to load the initial values from the specified file when the server starts.")
 	flag.DurationVar(&cfg.StoreInterval, "i", 3*time.Second, "time interval in seconds after which the current server readings are flushed to disk (value 0 makes recording synchronous).")
-	flag.StringVar(&cfg.StoreFile, "f", "/tmp/devops-metrics-db.json", "string, file name where values are stored (empty value - disables writing to disk).")
+	path := filepath.Join(os.TempDir(), "devops-metrics-db.json")
+	flag.StringVar(&cfg.StoreFile, "f", path, "string, file name where values are stored (empty value - disables writing to disk).")
+	flag.StringVar(&cfg.Key, "k", "", "key for hashing")
+	// Use -d "postgres://postgres:pass@postgres/postgres?sslmode=disable"
+	flag.StringVar(&cfg.DatabaseDSN, "d", "", "database data source name")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatalf("error parsing config file: %v", err)
 	}
-	log.Printf("Using config: Address: %s, Restore: %v, StoreInterval: %v, StoreFile: %s", cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.StoreFile)
+	log.Printf("Using config: Address: %s, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s", cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN)
+
 	// Create storage
-	repo := storage.NewMemStorage()
+	var repo service.Repository
+	if cfg.DatabaseDSN != "" {
+		repo, err = storage.NewPostgresStorage(cfg.DatabaseDSN)
+		if err != nil {
+			log.Fatalf("storage.NewPostgresStorage, error occured while connecting to postgres: %v", err)
+		}
+		// Disable file storage feature
+		cfg.StoreFile = ""
+	} else {
+		repo = storage.NewMemStorage()
+	}
 	// Create service
 	serv := service.New(repo, cfg)
 
+	// Run file storage
 	if cfg.StoreFile != "" {
 		fileRepo := storage.NewFileStorage(cfg.StoreFile)
 		go serv.RunFileStorage(fileRepo)
 	}
 
 	// Create handler
-	h := handler.New(serv)
+	h := handler.New(serv, cfg.Key, cfg.DatabaseDSN)
 	// Create server
-	srv := server.New()
+	srv := httpserver.New()
 
-	// create channel for graceful shutdown
+	// Create channel for graceful shutdown
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 

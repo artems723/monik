@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+
+  # go server app
+  app:
+    container_name: app
+    environment:
+      - DATABASE_DSN=postgres://postgres:pass@postgres/postgres?sslmode=disable
+    tty: true
+    build: .
+    ports:
+      - 8080:8080
+    restart: on-failure
+    volumes:
+      - app:/app
+    depends_on:
+      - postgres
+
+  # postgres
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    environment:
+
+      POSTGRES_PASSWORD: pass
+    ports:
+      - 5432:5432
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8090:8080
+
+volumes:
+  pg_data:
+  app:

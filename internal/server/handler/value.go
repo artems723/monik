@@ -17,7 +17,7 @@ func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 	metricName := chi.URLParam(r, "metricName")
 	log.Printf("Got get value request. Method=%s, Path: %s, metricType: %s, metricName: %s\n", r.Method, r.URL.Path, metricType, metricName)
 	// Get metric from service
-	metric, err := h.s.GetMetric(domain.NewMetric(metricName, metricType))
+	metric, err := h.s.GetMetric(r.Context(), domain.NewMetric(metricName, metricType))
 	// Check for errors
 	if err != nil && !errors.Is(err, storage.ErrNotFound) && !errors.Is(err, service.ErrMTypeMismatch) {
 		log.Printf("storage.GetMetric: %v", err)
@@ -37,8 +37,8 @@ func (h *Handler) getValue(w http.ResponseWriter, r *http.Request) {
 	case domain.MetricTypeCounter:
 		// Convert int64 to string
 		str = strconv.FormatInt(*metric.Delta, 10)
-	default:
-		http.Error(w, domain.ErrUnknownMetricType.Error(), http.StatusNotImplemented)
+	case domain.MetricTypeUnknown:
+		http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
 	_, err = w.Write([]byte(str))
@@ -54,17 +54,17 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
 	// Check errors
-	if err != nil && err != domain.ErrUnknownMetricType {
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err == domain.ErrUnknownMetricType {
-		http.Error(w, err.Error(), http.StatusNotImplemented)
+	log.Printf("Got get value JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metric)
+	if metric.MType == domain.MetricTypeUnknown {
+		http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
-	log.Printf("Got get value JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metric)
 	// Get metric from service
-	res, err := h.s.GetMetric(metric)
+	res, err := h.s.GetMetric(r.Context(), metric)
 	// Check for errors
 	if err != nil && !errors.Is(err, storage.ErrNotFound) && !errors.Is(err, service.ErrMTypeMismatch) {
 		log.Printf("storage.GetMetric: %v", err)
@@ -75,6 +75,12 @@ func (h *Handler) getValueJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
+
+	// Add hash to metric if key was provided
+	if h.key != "" {
+		res.AddHash(h.key)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	// Encode to JSON and write to response
 	err = json.NewEncoder(w).Encode(res)

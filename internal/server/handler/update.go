@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"github.com/artems723/monik/internal/server/domain"
-	"github.com/artems723/monik/internal/server/service"
 	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
@@ -43,20 +42,23 @@ func (h *Handler) updateMetric(w http.ResponseWriter, r *http.Request) {
 		}
 		// Create new metric
 		metric = domain.NewCounterMetric(metricName, val)
-	default:
-		http.Error(w, domain.ErrUnknownMetricType.Error(), http.StatusNotImplemented)
+	case domain.MetricTypeUnknown:
+		http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
-	// Write metric to service
-	err := h.s.WriteMetric(metric)
-	if err != nil && err != service.ErrMTypeMismatch && err != service.ErrNoValue {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if err == service.ErrMTypeMismatch || err == service.ErrNoValue {
+	// Validate metric
+	err := metric.Validate(h.key)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// Write metric to service
+	_, err = h.s.WriteMetric(r.Context(), metric)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -65,30 +67,71 @@ func (h *Handler) updateMetricJSON(w http.ResponseWriter, r *http.Request) {
 	// Read JSON and store to metric struct
 	err := json.NewDecoder(r.Body).Decode(&metric)
 	// Check errors
-	if err != nil && err != domain.ErrUnknownMetricType {
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	if err == domain.ErrUnknownMetricType {
-		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
 	log.Printf("Got update JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metric)
-	// Write metric to service
-	err = h.s.WriteMetric(metric)
-	if err != nil && err != service.ErrMTypeMismatch && err != service.ErrNoValue {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if metric.MType == domain.MetricTypeUnknown {
+		http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
 		return
 	}
-	if err == service.ErrMTypeMismatch || err == service.ErrNoValue {
+	// Validate metric
+	err = metric.Validate(h.key)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	// Encode to JSON and write to response
-	err = json.NewEncoder(w).Encode(metric)
+	// Write metric to service
+	res, err := h.s.WriteMetric(r.Context(), metric)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// Add hash to metric if key was provided
+	if h.key != "" {
+		res.AddHash(h.key)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	// Encode to JSON and write to response
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) updateMetricsJSON(w http.ResponseWriter, r *http.Request) {
+	var metrics []*domain.Metric
+	// Read JSON and store to metrics slice
+	err := json.NewDecoder(r.Body).Decode(&metrics)
+	// Check errors
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log.Printf("Got updates JSON request. Method=%s, Path: %s, metric: %v\n", r.Method, r.URL.Path, metrics)
+	for _, m := range metrics {
+		if m.MType == domain.MetricTypeUnknown {
+			http.Error(w, ErrUnknownMetricType.Error(), http.StatusNotImplemented)
+			return
+		}
+		// Validate metric
+		err = m.Validate(h.key)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Write metric to service
+	err = h.s.WriteMetrics(r.Context(), &domain.Metrics{Metrics: metrics})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

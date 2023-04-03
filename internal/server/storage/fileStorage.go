@@ -2,6 +2,7 @@ package storage
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/artems723/monik/internal/server/domain"
@@ -32,11 +33,11 @@ func (s *FileStorage) Close() error {
 	return s.file.Close()
 }
 
-func (s *FileStorage) WriteAllMetrics(metrics *domain.Metrics) error {
+func (s *FileStorage) WriteAllMetrics(ctx context.Context, metrics *domain.Metrics) error {
 	return s.encoder.Encode(metrics)
 }
 
-func (s *FileStorage) GetAllMetrics() (*domain.Metrics, error) {
+func (s *FileStorage) GetAllMetrics(ctx context.Context) (*domain.Metrics, error) {
 	// read our opened jsonFile as a byte array.
 	byteValue, err := s.readLastLine()
 	if err != nil {
@@ -51,8 +52,8 @@ func (s *FileStorage) GetAllMetrics() (*domain.Metrics, error) {
 	return &metrics, nil
 }
 
-func (s *FileStorage) GetMetric(metricName string) (*domain.Metric, error) {
-	metrics, err := s.GetAllMetrics()
+func (s *FileStorage) GetMetric(ctx context.Context, metricName string) (*domain.Metric, error) {
+	metrics, err := s.GetAllMetrics(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +65,8 @@ func (s *FileStorage) GetMetric(metricName string) (*domain.Metric, error) {
 	return nil, ErrNotFound
 }
 
-func (s *FileStorage) WriteMetric(metric *domain.Metric) error {
-	return s.WriteAllMetrics(&domain.Metrics{Metrics: []*domain.Metric{metric}})
+func (s *FileStorage) WriteMetric(ctx context.Context, metric *domain.Metric) error {
+	return s.WriteAllMetrics(ctx, &domain.Metrics{Metrics: []*domain.Metric{metric}})
 }
 
 func (s *FileStorage) readLastLine() ([]byte, error) {
@@ -99,6 +100,11 @@ func (s *FileStorage) readLastLine() ([]byte, error) {
 	}
 	buffer = buffer[:numRead]
 	return buffer, nil
+}
+
+func (s *FileStorage) PingRepo() error {
+	_, err := s.file.Stat()
+	return err
 }
 
 var ErrEmptyFile = errors.New("file is empty")

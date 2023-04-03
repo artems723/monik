@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -33,7 +34,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 				s: tt.fields.storage,
 			}
 			m.s[tt.args.metricName] = domain.NewGaugeMetric("testMetric", 5.0)
-			got, got1 := m.GetMetric(tt.args.metricName)
+			got, got1 := m.GetMetric(context.Background(), tt.args.metricName)
 
 			assert.Equal(t, *got, tt.want)
 			assert.Equal(t, got1, tt.want1)
@@ -64,7 +65,7 @@ func TestMemStorage_WriteMetric(t *testing.T) {
 			m := &MemStorage{
 				s: tt.fields.storage,
 			}
-			m.WriteMetric(tt.args.metric)
+			m.WriteMetric(context.Background(), tt.args.metric)
 			assert.Equal(t, m.s[tt.args.metric.ID], tt.args.metric)
 		})
 	}

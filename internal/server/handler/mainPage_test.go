@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/artems723/monik/internal/server"
+	"github.com/artems723/monik/internal/server/config"
 	"github.com/artems723/monik/internal/server/domain"
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/artems723/monik/internal/server/storage"
@@ -10,9 +10,24 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
+
+func init() {
+	// Change working dir to root project dir. It is needed for locating template files.
+	wd, _ := os.Getwd()
+	for !strings.HasSuffix(wd, "monik") {
+		wd = filepath.Dir(wd)
+	}
+	err := os.Chdir(wd)
+	if err != nil {
+		panic(err)
+	}
+}
 
 func TestHandler_mainPage(t *testing.T) {
 	type fields struct {
@@ -36,21 +51,19 @@ func TestHandler_mainPage(t *testing.T) {
 		want   want
 	}{
 		{
-			fields: fields{s: *service.New(storage.NewMemStorage(), server.Config{StoreInterval: 1 * time.Second})},
-			name:   "test get value",
+			fields: fields{s: *service.New(storage.NewMemStorage(), config.Config{StoreInterval: 1 * time.Second})},
+			name:   "test main page",
 			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
-			want:   want{"text/html", 200, "<!DOCTYPE html><html><body><h1>All metrics</h1></body>Name: Alloc, Type: gauge, Value: 20.200000<br></html>", "Alloc", 20.20},
+			want:   want{"text/html", 200, "Name: Alloc, Type: gauge, Value: 20.200000", "Alloc", 20.20},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := &Handler{
-				s: &tt.fields.s,
-			}
+			h := New(&tt.fields.s, "", "")
 
 			// add metric to storage
 			metric := domain.NewGaugeMetric(tt.want.metricName, tt.want.metricValue)
-			h.s.WriteMetric(metric)
+			h.s.WriteMetric(tt.args.r.Context(), metric)
 
 			// handler call
 			h.mainPage(tt.args.w, tt.args.r)
@@ -60,7 +73,7 @@ func TestHandler_mainPage(t *testing.T) {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			assert.Equal(t, tt.want.text, string(b))
+			assert.Contains(t, string(b), tt.want.text)
 			assert.Equal(t, tt.want.contentType, response.Header.Get("Content-Type"))
 			assert.Equal(t, tt.want.statusCode, response.StatusCode)
 		})
