@@ -87,3 +87,35 @@ func TestNewMemStorage(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkMemStorage_GetAllMetrics(b *testing.B) {
+	m := NewMemStorage()
+	m.s["testMetric"] = domain.NewGaugeMetric("testMetric", 5.0)
+	for i := 0; i < b.N; i++ {
+		m.GetAllMetrics()
+	}
+}
+
+func BenchmarkMemStorage_GetMetric(b *testing.B) {
+	m := NewMemStorage()
+	m.s["testMetric"] = domain.NewGaugeMetric("testMetric", 5.0)
+	for i := 0; i < b.N; i++ {
+		m.GetMetric("testMetric")
+	}
+}
+
+func BenchmarkMemStorage_WriteMetric(b *testing.B) {
+	m := NewMemStorage()
+	metric := domain.NewGaugeMetric("testMetric", 5.0)
+	for i := 0; i < b.N; i++ {
+		m.WriteMetric(metric)
+	}
+}
+
+func BenchmarkMemStorage_WriteAllMetrics(b *testing.B) {
+	m := NewMemStorage()
+	metrics := domain.Metrics{Metrics: []*domain.Metric{domain.NewGaugeMetric("testMetric", 5.0)}}
+	for i := 0; i < b.N; i++ {
+		m.WriteAllMetrics(&metrics)
+	}
+}
