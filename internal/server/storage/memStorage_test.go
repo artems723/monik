@@ -93,7 +93,7 @@ func BenchmarkMemStorage_GetAllMetrics(b *testing.B) {
 	m := NewMemStorage()
 	m.s["testMetric"] = domain.NewGaugeMetric("testMetric", 5.0)
 	for i := 0; i < b.N; i++ {
-		m.GetAllMetrics()
+		m.GetAllMetrics(context.Background())
 	}
 }
 
@@ -101,7 +101,7 @@ func BenchmarkMemStorage_GetMetric(b *testing.B) {
 	m := NewMemStorage()
 	m.s["testMetric"] = domain.NewGaugeMetric("testMetric", 5.0)
 	for i := 0; i < b.N; i++ {
-		m.GetMetric("testMetric")
+		m.GetMetric(context.Background(), "testMetric")
 	}
 }
 
@@ -109,7 +109,7 @@ func BenchmarkMemStorage_WriteMetric(b *testing.B) {
 	m := NewMemStorage()
 	metric := domain.NewGaugeMetric("testMetric", 5.0)
 	for i := 0; i < b.N; i++ {
-		m.WriteMetric(metric)
+		m.WriteMetric(context.Background(), metric)
 	}
 }
 
@@ -117,6 +117,6 @@ func BenchmarkMemStorage_WriteAllMetrics(b *testing.B) {
 	m := NewMemStorage()
 	metrics := domain.Metrics{Metrics: []*domain.Metric{domain.NewGaugeMetric("testMetric", 5.0)}}
 	for i := 0; i < b.N; i++ {
-		m.WriteAllMetrics(&metrics)
+		m.WriteAllMetrics(context.Background(), &metrics)
 	}
 }
