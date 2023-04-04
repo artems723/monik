@@ -32,8 +32,7 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	// Using built-in middleware
 	r.Use(middleware.RequestID)
-	// Commented out because of pprof optimization
-	//r.Use(middleware.RealIP)
+	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.AllowContentEncoding("gzip"))
 	r.Use(middleware.Compress(5))
