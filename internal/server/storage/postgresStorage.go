@@ -1,3 +1,4 @@
+// Package storage provides storage for metrics
 package storage
 
 import (

@@ -1,3 +1,4 @@
+// Package httpclient provides a client for sending data to the server
 package httpclient
 
 import (

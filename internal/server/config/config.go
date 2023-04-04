@@ -1,3 +1,4 @@
+// Package config provides the configuration for the server.
 package config
 
 import "time"

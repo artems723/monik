@@ -1,3 +1,4 @@
+// Package agent provides a client for sending metrics to the server
 package agent
 
 import (

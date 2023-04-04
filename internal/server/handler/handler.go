@@ -1,3 +1,4 @@
+// Package handler contains all handlers for server
 package handler
 
 import (

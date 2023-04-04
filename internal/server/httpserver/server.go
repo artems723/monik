@@ -1,3 +1,4 @@
+// Package httpserver provides a simple http server
 package httpserver
 
 import (
