@@ -1,12 +1,14 @@
+// Package handler contains all handlers for server
 package handler
 
 import (
 	"errors"
+	"html/template"
+	"path/filepath"
+
 	"github.com/artems723/monik/internal/server/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"html/template"
-	"path/filepath"
 )
 
 type Handler struct {
@@ -36,6 +38,8 @@ func (h *Handler) InitRoutes() *chi.Mux {
 	r.Use(middleware.AllowContentEncoding("gzip"))
 	r.Use(middleware.Compress(5))
 	r.Use(middleware.Recoverer)
+
+	r.Mount("/debug", middleware.Profiler())
 
 	r.Route("/update", func(r chi.Router) {
 		r.Post("/{metricType}/{metricName}/{metricValue}", h.updateMetric)

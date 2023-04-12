@@ -4,18 +4,19 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/artems723/monik/internal/server/config"
-	"github.com/artems723/monik/internal/server/domain"
-	"github.com/artems723/monik/internal/server/service"
-	"github.com/artems723/monik/internal/server/storage"
-	"github.com/go-chi/chi/v5"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/artems723/monik/internal/server/config"
+	"github.com/artems723/monik/internal/server/domain"
+	"github.com/artems723/monik/internal/server/service"
+	"github.com/artems723/monik/internal/server/storage"
+	"github.com/go-chi/chi/v5"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler_getValue(t *testing.T) {

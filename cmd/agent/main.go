@@ -2,11 +2,12 @@ package main
 
 import (
 	"flag"
+	"log"
+	"time"
+
 	"github.com/artems723/monik/internal/client/agent"
 	"github.com/artems723/monik/internal/client/httpclient"
 	"github.com/caarlos0/env/v6"
-	"log"
-	"time"
 )
 
 type config struct {

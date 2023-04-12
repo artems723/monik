@@ -2,8 +2,9 @@ package storage
 
 import (
 	"context"
-	"github.com/artems723/monik/internal/server/domain"
 	"log"
+
+	"github.com/artems723/monik/internal/server/domain"
 )
 
 type MemStorage struct {
