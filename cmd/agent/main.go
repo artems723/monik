@@ -10,6 +10,12 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
+var (
+	buildVersion string = "N/A"
+	buildDate    string = "N/A"
+	buildCommit  string = "N/A"
+)
+
 type config struct {
 	Address        string        `env:"ADDRESS"`
 	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
@@ -19,6 +25,9 @@ type config struct {
 }
 
 func main() {
+	log.Printf("Build version: %s", buildVersion)
+	log.Printf("Build date: %s", buildDate)
+	log.Printf("Build commit: %s", buildCommit)
 	// Create and read config
 	cfg := config{}
 	//Parse config from flag
