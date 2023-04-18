@@ -11,8 +11,8 @@ import (
 
 type HTTPClient struct {
 	client    *resty.Client
-	rateLimit int
 	jobs      chan struct{}
+	rateLimit int
 }
 
 func New(rateLimit int) HTTPClient {

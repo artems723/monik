@@ -35,11 +35,11 @@ func TestHandler_updateMetric(t *testing.T) {
 		r *http.Request
 	}
 	tests := []struct {
-		name      string
-		fields    fields
 		args      args
-		want      want
+		fields    fields
+		name      string
 		urlParams urlParams
+		want      want
 	}{
 		{
 			name:      "test 200 code",
@@ -97,20 +97,20 @@ func TestHandler_updateMetricJSON(t *testing.T) {
 	}
 	type want struct {
 		contentType string
-		statusCode  int
 		metric      *domain.Metric
+		statusCode  int
 	}
 	type args struct {
-		w           http.ResponseWriter
-		r           *http.Request
 		contentType string
 		metric      *domain.Metric
+		r           *http.Request
+		w           http.ResponseWriter
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		want   want
 		args   args
+		fields fields
+		name   string
+		want   want
 	}{
 		{
 			name:   "test success path",
