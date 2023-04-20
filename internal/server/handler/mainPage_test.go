@@ -36,10 +36,10 @@ func TestHandler_mainPage(t *testing.T) {
 	}
 	type want struct {
 		contentType string
-		statusCode  int
-		text        string
 		metricName  string
 		metricValue float64
+		statusCode  int
+		text        string
 	}
 	type args struct {
 		w http.ResponseWriter
@@ -55,7 +55,7 @@ func TestHandler_mainPage(t *testing.T) {
 			fields: fields{s: *service.New(storage.NewMemStorage(), config.Config{StoreInterval: 1 * time.Second})},
 			name:   "test main page",
 			args:   args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/}", nil)},
-			want:   want{"text/html", 200, "Name: Alloc, Type: gauge, Value: 20.200000", "Alloc", 20.20},
+			want:   want{contentType: "text/html", statusCode: 200, text: "Name: Alloc, Type: gauge, Value: 20.200000", metricName: "Alloc", metricValue: 20.20},
 		},
 	}
 	for _, tt := range tests {

@@ -133,6 +133,12 @@ func (h *Handler) updateMetricsJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	w.Header().Set("Content-Type", "application/json")
+	// Encode to JSON and write to response
+	err = json.NewEncoder(w).Encode(metrics)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }

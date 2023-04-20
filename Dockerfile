@@ -9,7 +9,7 @@ WORKDIR /app
 COPY . .
 
 # Build the Go app
-RUN go build -o /build cmd/server/main.go
+RUN go build -ldflags "-X main.buildVersion=1.0.1 -X 'main.buildDate=$(date +'%Y/%m/%d %H:%M:%S')' -X main.buildCommit=1.0.1 " -o /build cmd/server/main.go
 
 # Expose port 8080 to the outside world
 EXPOSE 8080

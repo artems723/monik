@@ -13,9 +13,9 @@ import (
 )
 
 type FileStorage struct {
+	encoder  *json.Encoder
 	file     *os.File
 	fileName string
-	encoder  *json.Encoder
 }
 
 func NewFileStorage(fileName string) *FileStorage {

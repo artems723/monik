@@ -16,9 +16,9 @@ func TestMemStorage_GetMetric(t *testing.T) {
 		metricName string
 	}
 	tests := []struct {
-		name   string
-		fields fields
 		args   args
+		fields fields
+		name   string
 		want   domain.Metric
 		want1  error
 	}{
@@ -51,9 +51,9 @@ func TestMemStorage_WriteMetric(t *testing.T) {
 		metric *domain.Metric
 	}
 	tests := []struct {
-		name   string
-		fields fields
 		args   args
+		fields fields
+		name   string
 	}{
 		{
 			name:   "test write",

@@ -12,9 +12,9 @@ import (
 )
 
 type Handler struct {
-	s           *service.Service
-	key         string
 	databaseDSN string
+	key         string
+	s           *service.Service
 	tmpl        *template.Template
 }
 

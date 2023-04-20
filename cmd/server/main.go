@@ -19,7 +19,16 @@ import (
 	"golang.org/x/net/context"
 )
 
+var (
+	buildVersion string = "N/A"
+	buildDate    string = "N/A"
+	buildCommit  string = "N/A"
+)
+
 func main() {
+	log.Printf("Build version: %s", buildVersion)
+	log.Printf("Build date: %s", buildDate)
+	log.Printf("Build commit: %s", buildCommit)
 	// Create and read config
 	cfg := config.Config{}
 	// Parse config from flag

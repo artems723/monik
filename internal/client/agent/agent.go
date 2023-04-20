@@ -17,10 +17,10 @@ type Client interface {
 }
 
 type Agent struct {
-	storage map[string]*Metric
 	client  Client
 	key     string
 	mu      *sync.RWMutex
+	storage map[string]*Metric
 }
 
 func New(key string, cl Client) Agent {

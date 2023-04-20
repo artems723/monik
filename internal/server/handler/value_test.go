@@ -27,8 +27,8 @@ func TestHandler_getValue(t *testing.T) {
 	}
 	type want struct {
 		contentType string
-		statusCode  int
 		metricValue string
+		statusCode  int
 	}
 	type urlParams struct {
 		metricType string
@@ -39,24 +39,24 @@ func TestHandler_getValue(t *testing.T) {
 		r *http.Request
 	}
 	tests := []struct {
-		name      string
-		fields    fields
 		args      args
-		want      want
+		fields    fields
+		name      string
 		urlParams urlParams
+		want      want
 	}{
 		{
 			name:      "test get gauge value",
 			fields:    fields{s: *service.New(storage.NewMemStorage(), config.Config{StoreInterval: 1 * time.Second}), valGauge: 20.201},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
-			want:      want{"text/plain; charset=utf-8", 200, "20.201"},
+			want:      want{contentType: "text/plain; charset=utf-8", statusCode: 200, metricValue: "20.201"},
 			urlParams: urlParams{"gauge", "Alloc"},
 		},
 		{
 			name:      "test get counter value",
 			fields:    fields{s: *service.New(storage.NewMemStorage(), config.Config{StoreInterval: 1 * time.Second}), valCounter: 20},
 			args:      args{httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/{metricType}/{metricName}", nil)},
-			want:      want{"text/plain; charset=utf-8", 200, "20"},
+			want:      want{contentType: "text/plain; charset=utf-8", statusCode: 200, metricValue: "20"},
 			urlParams: urlParams{"counter", "PollCount"},
 		},
 	}
@@ -103,20 +103,20 @@ func TestHandler_getValueJSON(t *testing.T) {
 	}
 	type want struct {
 		contentType string
-		statusCode  int
 		metric      *domain.Metric
+		statusCode  int
 	}
 	type args struct {
-		w           http.ResponseWriter
-		r           *http.Request
 		contentType string
 		metric      *domain.Metric
+		r           *http.Request
+		w           http.ResponseWriter
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		want   want
 		args   args
+		fields fields
+		name   string
+		want   want
 	}{
 		{
 			name:   "test success path",
