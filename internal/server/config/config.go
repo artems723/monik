@@ -5,6 +5,7 @@ import "time"
 
 type Config struct {
 	Address       string        `env:"ADDRESS"`
+	CertFile      string        `env:"CERT_FILE"`
 	CryptoKey     string        `env:"CRYPTO_KEY"`
 	DatabaseDSN   string        `env:"DATABASE_DSN"`
 	EnableHTTPS   bool          `env:"ENABLE_HTTPS"`

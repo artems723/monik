@@ -43,6 +43,8 @@ func main() {
 	flag.BoolVar(&cfg.EnableHTTPS, "s", false, "bool value determines whether to enable HTTPS.")
 	pathCryptoKey := filepath.Join("crypto", "server.key")
 	flag.StringVar(&cfg.CryptoKey, "crypto-key", pathCryptoKey, "string, crypto key path")
+	pathCertFile := filepath.Join("crypto", "server.crt")
+	flag.StringVar(&cfg.CertFile, "cert-file", pathCertFile, "string, cert file path")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
@@ -82,13 +84,24 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	// Start http server
-	go func() {
-		err = srv.Run(cfg.Address, h.InitRoutes())
-		if err != nil && err != http.ErrServerClosed {
-			log.Fatalf("srv.Run, error occured while running http server: %v", err)
-		}
-	}()
-	log.Printf("Server started")
+	switch cfg.EnableHTTPS {
+	case false:
+		go func() {
+			err = srv.Run(cfg.Address, h.InitRoutes())
+			if err != nil && err != http.ErrServerClosed {
+				log.Fatalf("srv.Run, error occured while running http server: %v", err)
+			}
+		}()
+		log.Printf("Server started")
+	case true:
+		go func() {
+			err = srv.RunTLS(cfg.Address, cfg.CertFile, cfg.CryptoKey, h.InitRoutes())
+			if err != nil && err != http.ErrServerClosed {
+				log.Fatalf("srv.Run, error occured while running http server: %v", err)
+			}
+		}()
+		log.Printf("Server started with TLS")
+	}
 
 	<-done
 	// Shutdown http server
