@@ -40,6 +40,9 @@ func main() {
 	flag.StringVar(&cfg.Key, "k", "", "key for hashing")
 	// Use -d "postgres://postgres:pass@postgres/postgres?sslmode=disable"
 	flag.StringVar(&cfg.DatabaseDSN, "d", "", "database data source name")
+	flag.BoolVar(&cfg.EnableHTTPS, "s", false, "bool value determines whether to enable HTTPS.")
+	pathCryptoKey := filepath.Join("crypto", "server.key")
+	flag.StringVar(&cfg.CryptoKey, "crypto-key", pathCryptoKey, "string, crypto key path")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)

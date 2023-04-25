@@ -5,7 +5,9 @@ import "time"
 
 type Config struct {
 	Address       string        `env:"ADDRESS"`
+	CryptoKey     string        `env:"CRYPTO_KEY"`
 	DatabaseDSN   string        `env:"DATABASE_DSN"`
+	EnableHTTPS   bool          `env:"ENABLE_HTTPS"`
 	Key           string        `env:"KEY"`
 	Restore       bool          `env:"RESTORE"`
 	StoreInterval time.Duration `env:"STORE_INTERVAL"`

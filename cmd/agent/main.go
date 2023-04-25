@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"path/filepath"
 	"time"
 
 	"github.com/artems723/monik/internal/client/agent"
@@ -18,6 +19,7 @@ var (
 
 type config struct {
 	Address        string        `env:"ADDRESS"`
+	CryptoKey      string        `env:"CRYPTO_KEY"`
 	Key            string        `env:"KEY"`
 	PollInterval   time.Duration `env:"POLL_INTERVAL"`
 	RateLimit      int           `env:"RATE_LIMIT"`
@@ -36,6 +38,8 @@ func main() {
 	flag.DurationVar(&cfg.PollInterval, "p", 2*time.Second, "time interval in seconds for updating metrics.")
 	flag.StringVar(&cfg.Key, "k", "", "key for hashing")
 	flag.IntVar(&cfg.RateLimit, "l", 10, "maximum number of outgoing requests to the server")
+	pathCryptoKey := filepath.Join("crypto", "server.key")
+	flag.StringVar(&cfg.CryptoKey, "crypto-key", pathCryptoKey, "string, crypto key path")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
