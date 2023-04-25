@@ -51,7 +51,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error parsing config file: %v", err)
 	}
-	log.Printf("Using config: Address: %s, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s", cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN)
+	log.Printf("Using config: Address: %s, EnableHTTPS: %v, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s", cfg.Address, cfg.EnableHTTPS, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN)
 
 	// Create storage
 	var repo service.Repository

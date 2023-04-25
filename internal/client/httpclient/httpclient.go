@@ -47,3 +47,7 @@ func (c HTTPClient) SendData(metrics []*agent.Metric, URL string) ([]agent.Metri
 	}
 	return result, nil
 }
+
+func (c HTTPClient) SetRootCertificate(certFile string) {
+	c.client.SetRootCertificate(certFile)
+}
