@@ -19,6 +19,7 @@ var (
 
 type config struct {
 	Address        string        `env:"ADDRESS"`
+	ConfigFile     string        `env:"CONFIG"`
 	CryptoKey      string        `env:"CRYPTO_KEY"`
 	EnableHTTPS    bool          `env:"ENABLE_HTTPS"`
 	Key            string        `env:"KEY"`
@@ -34,6 +35,7 @@ func main() {
 	// Create and read config
 	cfg := config{}
 	//Parse config from flag
+	flag.StringVar(&cfg.ConfigFile, "c", "", "json config file path")
 	flag.StringVar(&cfg.Address, "a", "localhost:8080", "server address.")
 	flag.DurationVar(&cfg.ReportInterval, "r", 10*time.Second, "time interval in seconds for sending metrics to server.")
 	flag.DurationVar(&cfg.PollInterval, "p", 2*time.Second, "time interval in seconds for updating metrics.")
