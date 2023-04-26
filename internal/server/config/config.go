@@ -1,17 +1,41 @@
 // Package config provides the configuration for the server.
 package config
 
-import "time"
+import (
+	"encoding/json"
+	"log"
+	"os"
+	"time"
+)
 
 type Config struct {
-	Address       string        `env:"ADDRESS"`
-	CertFile      string        `env:"CERT_FILE"`
-	ConfigFile    string        `env:"CONFIG"`
-	CryptoKey     string        `env:"CRYPTO_KEY"`
-	DatabaseDSN   string        `env:"DATABASE_DSN"`
-	EnableHTTPS   bool          `env:"ENABLE_HTTPS"`
-	Key           string        `env:"KEY"`
-	Restore       bool          `env:"RESTORE"`
-	StoreInterval time.Duration `env:"STORE_INTERVAL"`
-	StoreFile     string        `env:"STORE_FILE"`
+	Address       string        `env:"ADDRESS" json:"address"`
+	CertFile      string        `env:"CERT_FILE" json:"cert_file"`
+	ConfigFile    string        `env:"CONFIG" json:"-"`
+	CryptoKey     string        `env:"CRYPTO_KEY" json:"crypto_key"`
+	DatabaseDSN   string        `env:"DATABASE_DSN" json:"database_dsn"`
+	EnableHTTPS   bool          `env:"ENABLE_HTTPS" json:"enable_https"`
+	Key           string        `env:"KEY" json:"hash_key"`
+	Restore       bool          `env:"RESTORE" json:"restore"`
+	StoreInterval time.Duration `env:"STORE_INTERVAL" json:"store_interval"`
+	StoreFile     string        `env:"STORE_FILE" json:"store_file"`
+}
+
+func LoadJsonConfig(configFile string, config *Config) error {
+	raw, err := os.ReadFile(configFile)
+	if err != nil {
+		log.Println("Error occurred while reading config")
+		return err
+	}
+	cfgJSON := Config{}
+	err = json.Unmarshal(raw, &cfgJSON)
+	if err != nil {
+		return err
+	}
+
+	if config.Address == "" {
+		config.Address = cfgJSON.Address
+	}
+
+	return nil
 }
