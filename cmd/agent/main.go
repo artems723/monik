@@ -35,6 +35,7 @@ func main() {
 	log.Printf("Build date: %s", buildDate)
 	log.Printf("Build commit: %s", buildCommit)
 	// Create and read config
+	// Config priority: default values -> json config file -> flag -> env
 	cfg := config{}
 	//Parse config from flag
 	flag.StringVar(&cfg.ConfigFile, "c", "", "json config file path")
@@ -57,6 +58,13 @@ func main() {
 		err := LoadJSONConfig(cfg.ConfigFile, &cfg)
 		if err != nil {
 			log.Fatalf("error parsing config file: %v", err)
+		}
+		// Parse config from flag
+		flag.Parse()
+		// Parse config from env
+		err = env.Parse(&cfg)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 
