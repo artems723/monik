@@ -59,15 +59,8 @@ func main() {
 			log.Fatalf("error parsing config file: %v", err)
 		}
 	}
-	// Parse config from flag
-	// flag.Parse()
-	// Parse config from env
-	err = env.Parse(&cfg)
-	if err != nil {
-		log.Fatalf("error parsing config file: %v", err)
-	}
 
-	log.Printf("Using config: Address: %s, EnableHTTPS: %v, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s", cfg.Address, cfg.EnableHTTPS, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN)
+	log.Printf("Using config: Address: %s, EnableHTTPS: %v, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s, ConfigFile: %s", cfg.Address, cfg.EnableHTTPS, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN, cfg.ConfigFile)
 
 	// Create storage
 	var repo service.Repository

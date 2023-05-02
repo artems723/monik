@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"log"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -50,7 +52,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("Using config: Address: %s, EnableHTTPS: %v, ReportInterval: %v, PollInterval: %v, Key: %s, RateLimit: %d", cfg.Address, cfg.EnableHTTPS, cfg.ReportInterval, cfg.PollInterval, cfg.Key, cfg.RateLimit)
+	//Parse config from json file
+	if cfg.ConfigFile != "" {
+		err := LoadJsonConfig(cfg.ConfigFile, &cfg)
+		if err != nil {
+			log.Fatalf("error parsing config file: %v", err)
+		}
+	}
+
+	log.Printf("Using config: Address: %s, EnableHTTPS: %v, ReportInterval: %v, PollInterval: %v, Key: %s, RateLimit: %d, ConfigFle: %s", cfg.Address, cfg.EnableHTTPS, cfg.ReportInterval, cfg.PollInterval, cfg.Key, cfg.RateLimit, cfg.ConfigFile)
 	if cfg.RateLimit <= 0 {
 		log.Fatal("RateLimit must be greater than 0")
 	}
@@ -86,4 +96,43 @@ func main() {
 	for range reportIntervalTicker.C {
 		a.SendData(serverAddr)
 	}
+}
+
+func LoadJsonConfig(configFile string, conf *config) error {
+	raw, err := os.ReadFile(configFile)
+	if err != nil {
+		log.Println("Error occurred while reading config")
+		return err
+	}
+	cfgJSON := config{}
+	err = json.Unmarshal(raw, &cfgJSON)
+	if err != nil {
+		return err
+	}
+
+	if conf.Address == "" {
+		conf.Address = cfgJSON.Address
+	}
+
+	if conf.ReportInterval == 0 {
+		conf.ReportInterval = cfgJSON.ReportInterval
+	}
+
+	if conf.PollInterval == 0 {
+		conf.PollInterval = cfgJSON.PollInterval
+	}
+
+	if conf.Key == "" {
+		conf.Key = cfgJSON.Key
+	}
+
+	if conf.RateLimit == 0 {
+		conf.RateLimit = cfgJSON.RateLimit
+	}
+
+	if conf.CryptoKey == "" {
+		conf.CryptoKey = cfgJSON.CryptoKey
+	}
+
+	return nil
 }
