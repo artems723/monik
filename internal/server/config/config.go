@@ -21,20 +21,15 @@ type Config struct {
 	StoreFile     string        `env:"STORE_FILE" json:"store_file"`
 }
 
-func LoadJsonConfig(configFile string, config *Config) error {
+func LoadJSONConfig(configFile string, config *Config) error {
 	raw, err := os.ReadFile(configFile)
 	if err != nil {
 		log.Println("Error occurred while reading config")
 		return err
 	}
-	cfgJSON := Config{}
-	err = json.Unmarshal(raw, &cfgJSON)
+	err = json.Unmarshal(raw, &config)
 	if err != nil {
 		return err
-	}
-
-	if config.Address == "" {
-		config.Address = cfgJSON.Address
 	}
 
 	return nil

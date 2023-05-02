@@ -54,7 +54,7 @@ func main() {
 	}
 	//Parse config from json file
 	if cfg.ConfigFile != "" {
-		err := LoadJsonConfig(cfg.ConfigFile, &cfg)
+		err := LoadJSONConfig(cfg.ConfigFile, &cfg)
 		if err != nil {
 			log.Fatalf("error parsing config file: %v", err)
 		}
@@ -98,41 +98,15 @@ func main() {
 	}
 }
 
-func LoadJsonConfig(configFile string, conf *config) error {
+func LoadJSONConfig(configFile string, conf *config) error {
 	raw, err := os.ReadFile(configFile)
 	if err != nil {
 		log.Println("Error occurred while reading config")
 		return err
 	}
-	cfgJSON := config{}
-	err = json.Unmarshal(raw, &cfgJSON)
+	err = json.Unmarshal(raw, &conf)
 	if err != nil {
 		return err
 	}
-
-	if conf.Address == "" {
-		conf.Address = cfgJSON.Address
-	}
-
-	if conf.ReportInterval == 0 {
-		conf.ReportInterval = cfgJSON.ReportInterval
-	}
-
-	if conf.PollInterval == 0 {
-		conf.PollInterval = cfgJSON.PollInterval
-	}
-
-	if conf.Key == "" {
-		conf.Key = cfgJSON.Key
-	}
-
-	if conf.RateLimit == 0 {
-		conf.RateLimit = cfgJSON.RateLimit
-	}
-
-	if conf.CryptoKey == "" {
-		conf.CryptoKey = cfgJSON.CryptoKey
-	}
-
 	return nil
 }

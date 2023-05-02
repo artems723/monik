@@ -6,6 +6,6 @@
   "hash_key": "",
   "database_dsn": "",
   "enable_https": false,
-  "crypto_key": "",
-  "cert_file": ""
+  "crypto_key": "crypto/server.key",
+  "cert_file": "crypto/server.crt"
 }

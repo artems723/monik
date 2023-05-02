@@ -54,7 +54,7 @@ func main() {
 	}
 	//Parse config from json file
 	if cfg.ConfigFile != "" {
-		err := config.LoadJsonConfig(cfg.ConfigFile, &cfg)
+		err := config.LoadJSONConfig(cfg.ConfigFile, &cfg)
 		if err != nil {
 			log.Fatalf("error parsing config file: %v", err)
 		}

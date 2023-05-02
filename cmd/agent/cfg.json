@@ -4,6 +4,6 @@
   "poll_interval": "2s",
   "hash_key": "",
   "rate_limit": 10,
-  "crypto_key": "/crypto/server.crt",
+  "crypto_key": "crypto/server.crt",
   "enable_https": false
 }
