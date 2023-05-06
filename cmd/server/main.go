@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -101,24 +100,8 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	// Start http server
-	switch cfg.EnableHTTPS {
-	case false:
-		go func() {
-			err = srv.Run(cfg.Address, h.InitRoutes())
-			if err != nil && err != http.ErrServerClosed {
-				log.Fatalf("srv.Run, error occured while running http server: %v", err)
-			}
-		}()
-		log.Printf("Server started")
-	case true:
-		go func() {
-			err = srv.RunTLS(cfg.Address, cfg.CertFile, cfg.CryptoKey, h.InitRoutes())
-			if err != nil && err != http.ErrServerClosed {
-				log.Fatalf("srv.Run, error occured while running http server: %v", err)
-			}
-		}()
-		log.Printf("Server started with TLS")
-	}
+	go srv.Start(cfg, h.InitRoutes())
+	log.Printf("Server started")
 
 	<-done
 	// Shutdown http server
