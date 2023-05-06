@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -30,8 +29,10 @@ func main() {
 	log.Printf("Build date: %s", buildDate)
 	log.Printf("Build commit: %s", buildCommit)
 	// Create and read config
+	// Config priority: default values -> json config file -> flag -> env
 	cfg := config.Config{}
 	// Parse config from flag
+	flag.StringVar(&cfg.ConfigFile, "c", "", "json config file path")
 	flag.StringVar(&cfg.Address, "a", ":8080", "server address.")
 	flag.BoolVar(&cfg.Restore, "r", true, "bool value determines whether to load the initial values from the specified file when the server starts.")
 	flag.DurationVar(&cfg.StoreInterval, "i", 3*time.Second, "time interval in seconds after which the current server readings are flushed to disk (value 0 makes recording synchronous).")
@@ -40,13 +41,33 @@ func main() {
 	flag.StringVar(&cfg.Key, "k", "", "key for hashing")
 	// Use -d "postgres://postgres:pass@postgres/postgres?sslmode=disable"
 	flag.StringVar(&cfg.DatabaseDSN, "d", "", "database data source name")
+	flag.BoolVar(&cfg.EnableHTTPS, "s", false, "bool value determines whether to enable HTTPS.")
+	pathCryptoKey := filepath.Join("crypto", "server.key")
+	flag.StringVar(&cfg.CryptoKey, "crypto-key", pathCryptoKey, "string, crypto key path")
+	pathCertFile := filepath.Join("crypto", "server.crt")
+	flag.StringVar(&cfg.CertFile, "cert-file", pathCertFile, "string, cert file path")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatalf("error parsing config file: %v", err)
 	}
-	log.Printf("Using config: Address: %s, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s", cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN)
+	//Parse config from json file
+	if cfg.ConfigFile != "" {
+		err := config.LoadJSONConfig(cfg.ConfigFile, &cfg)
+		if err != nil {
+			log.Fatalf("error parsing config file: %v", err)
+		}
+		// Parse config from flag
+		flag.Parse()
+		// Parse config from env
+		err = env.Parse(&cfg)
+		if err != nil {
+			log.Fatalf("error parsing config file: %v", err)
+		}
+	}
+
+	log.Printf("Using config: Address: %s, EnableHTTPS: %v, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s, ConfigFile: %s", cfg.Address, cfg.EnableHTTPS, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN, cfg.ConfigFile)
 
 	// Create storage
 	var repo service.Repository
@@ -79,12 +100,7 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	// Start http server
-	go func() {
-		err = srv.Run(cfg.Address, h.InitRoutes())
-		if err != nil && err != http.ErrServerClosed {
-			log.Fatalf("srv.Run, error occured while running http server: %v", err)
-		}
-	}()
+	go srv.Start(cfg, h.InitRoutes())
 	log.Printf("Server started")
 
 	<-done
