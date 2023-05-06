@@ -5,6 +5,11 @@
 *.so
 *.dylib
 
+# Certificates and key files
+*.crt
+*.pem
+*.key
+
 # Test binary, built with `go test -c`
 *.test
 
