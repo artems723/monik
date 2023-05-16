@@ -15,6 +15,7 @@ type Config struct {
 	CryptoKey     string        `env:"CRYPTO_KEY" json:"crypto_key"`
 	DatabaseDSN   string        `env:"DATABASE_DSN" json:"database_dsn"`
 	EnableHTTPS   bool          `env:"ENABLE_HTTPS" json:"enable_https"`
+	GRPCEnabled   bool          `env:"GRPC_ENABLED" json:"grpc_enabled"`
 	Key           string        `env:"KEY" json:"hash_key"`
 	Restore       bool          `env:"RESTORE" json:"restore"`
 	StoreInterval time.Duration `env:"STORE_INTERVAL" json:"store_interval"`

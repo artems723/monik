@@ -24,6 +24,7 @@ type config struct {
 	ConfigFile     string        `env:"CONFIG" json:"-"`
 	CryptoKey      string        `env:"CRYPTO_KEY" json:"crypto_key"`
 	EnableHTTPS    bool          `env:"ENABLE_HTTPS" json:"enable_https"`
+	GRPCEnabled    bool          `env:"GRPC_ENABLED" json:"grpc_enabled"`
 	Key            string        `env:"KEY" json:"hash_key"`
 	PollInterval   time.Duration `env:"POLL_INTERVAL" json:"poll_interval"`
 	RateLimit      int           `env:"RATE_LIMIT" json:"rate_limit"`
@@ -47,6 +48,7 @@ func main() {
 	pathCryptoKey := filepath.Join("crypto", "server.crt")
 	flag.StringVar(&cfg.CryptoKey, "crypto-key", pathCryptoKey, "string, crypto key path")
 	flag.BoolVar(&cfg.EnableHTTPS, "s", false, "bool value determines whether to enable HTTPS.")
+	flag.BoolVar(&cfg.GRPCEnabled, "grpc", false, "bool value determines whether to enable GRPC.")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)

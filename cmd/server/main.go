@@ -47,6 +47,7 @@ func main() {
 	pathCertFile := filepath.Join("crypto", "server.crt")
 	flag.StringVar(&cfg.CertFile, "cert-file", pathCertFile, "string, cert file path")
 	flag.StringVar(&cfg.TrustedSubnet, "t", "", "string, trusted subnet")
+	flag.BoolVar(&cfg.GRPCEnabled, "grpc", false, "bool value determines whether to enable GRPC server.")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
