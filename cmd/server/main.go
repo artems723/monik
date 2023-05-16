@@ -68,7 +68,7 @@ func main() {
 		}
 	}
 
-	log.Printf("Using config: Address: %s, EnableHTTPS: %v, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s, ConfigFile: %s", cfg.Address, cfg.EnableHTTPS, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN, cfg.ConfigFile)
+	log.Printf("Using config: Address: %s, EnableHTTPS: %v, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s, ConfigFile: %s, TrustedSubnet: %s", cfg.Address, cfg.EnableHTTPS, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN, cfg.ConfigFile, cfg.TrustedSubnet)
 
 	// Create storage
 	var repo service.Repository
@@ -101,7 +101,7 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	// Start http server
-	go srv.Start(cfg, h.InitRoutes())
+	go srv.Start(cfg, h.InitRoutes(cfg))
 	log.Printf("Server started")
 
 	<-done

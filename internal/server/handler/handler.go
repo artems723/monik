@@ -3,7 +3,11 @@ package handler
 
 import (
 	"errors"
+	"github.com/artems723/monik/internal/server/config"
 	"html/template"
+	"log"
+	"net"
+	"net/http"
 	"path/filepath"
 
 	"github.com/artems723/monik/internal/server/service"
@@ -27,10 +31,12 @@ func New(s *service.Service, key string, databaseDSN string) *Handler {
 	}
 }
 
-func (h *Handler) InitRoutes() *chi.Mux {
+func (h *Handler) InitRoutes(cfg config.Config) *chi.Mux {
 	// Create new chi router
 	r := chi.NewRouter()
 
+	// Check if real ip is from trusted subnet
+	r.Use(CheckTrustedSubnet(cfg.TrustedSubnet))
 	// Using built-in middleware
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -66,3 +72,35 @@ func (h *Handler) InitRoutes() *chi.Mux {
 }
 
 var ErrUnknownMetricType = errors.New("unknown metric type")
+
+func CheckTrustedSubnet(trustedSubnet string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if trustedSubnet == "" {
+				next.ServeHTTP(w, r)
+				return
+			}
+			realIP := r.Header.Get("X-Real-IP")
+			if realIP == "" {
+				http.Error(w, "headers not contain X-Real-IP", http.StatusBadRequest)
+				return
+			}
+			ip := net.ParseIP(realIP)
+			if ip == nil {
+				http.Error(w, "cannot parse X-Real-IP", http.StatusBadRequest)
+				return
+			}
+			_, subnet, err := net.ParseCIDR(trustedSubnet)
+			if err != nil {
+				log.Printf("cannot parse trusted subnet: %s", err)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			if !subnet.Contains(ip) {
+				http.Error(w, "ip not from trusted subnet", http.StatusForbidden)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
