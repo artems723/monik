@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/artems723/monik/internal/server/grpcserver"
 	"log"
 	"os"
 	"os/signal"
@@ -96,6 +97,11 @@ func main() {
 	h := handler.New(serv, cfg.Key, cfg.DatabaseDSN)
 	// Create server
 	srv := httpserver.New()
+
+	if cfg.GRPCEnabled {
+		grpcsrv := grpcserver.New(serv, cfg)
+		go grpcsrv.Start()
+	}
 
 	// Create channel for graceful shutdown
 	done := make(chan os.Signal, 1)
