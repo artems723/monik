@@ -19,6 +19,7 @@ type Config struct {
 	Restore       bool          `env:"RESTORE" json:"restore"`
 	StoreInterval time.Duration `env:"STORE_INTERVAL" json:"store_interval"`
 	StoreFile     string        `env:"STORE_FILE" json:"store_file"`
+	TrustedSubnet string        `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 }
 
 func LoadJSONConfig(configFile string, config *Config) error {

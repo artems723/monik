@@ -46,6 +46,7 @@ func main() {
 	flag.StringVar(&cfg.CryptoKey, "crypto-key", pathCryptoKey, "string, crypto key path")
 	pathCertFile := filepath.Join("crypto", "server.crt")
 	flag.StringVar(&cfg.CertFile, "cert-file", pathCertFile, "string, cert file path")
+	flag.StringVar(&cfg.TrustedSubnet, "t", "", "string, trusted subnet")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
