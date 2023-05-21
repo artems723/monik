@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 package metrics;
 
 option go_package = "github.com/artems723/monik/internal/server/proto";
@@ -16,13 +18,9 @@ message SaveMetricRequest {
   Metric metric = 1;
 }
 
-message SaveMetricResponse {}
-
 message SaveListMetricsRequest {
   repeated Metric metric = 1;
 }
-
-message SaveListMetricsResponse {}
 
 message GetMetricRequest {
   string metricName = 1;
@@ -32,22 +30,18 @@ message GetMetricResponse {
   Metric metric = 1;
 }
 
-message GetListMetricRequest {}
-
 message GetListMetricResponse {
   repeated Metric metric = 1;
 }
-
-message PingRequest {}
 
 message PingResponse {
   bool ping = 1;
 }
 
 service Metrics {
-  rpc Save(SaveMetricRequest) returns (SaveMetricResponse);
-  rpc SaveList(SaveListMetricsRequest) returns (SaveListMetricsResponse);
+  rpc Save(SaveMetricRequest) returns (google.protobuf.Empty);
+  rpc SaveList(SaveListMetricsRequest) returns (google.protobuf.Empty);
   rpc Get(GetMetricRequest) returns (GetMetricResponse);
-  rpc GetList(GetListMetricRequest) returns (GetListMetricResponse);
-  rpc Ping(PingRequest) returns (PingResponse);
+  rpc GetList(google.protobuf.Empty) returns (GetListMetricResponse);
+  rpc Ping(google.protobuf.Empty) returns (PingResponse);
 }
