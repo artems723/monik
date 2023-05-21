@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -30,11 +31,11 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MetricsClient interface {
-	Save(ctx context.Context, in *SaveMetricRequest, opts ...grpc.CallOption) (*SaveMetricResponse, error)
-	SaveList(ctx context.Context, in *SaveListMetricsRequest, opts ...grpc.CallOption) (*SaveListMetricsResponse, error)
-	Get(ctx context.Context, in *GetMetricRequest, opts ...grpc.CallOption) (*GetMetricResponse, error)
-	GetList(ctx context.Context, in *GetListMetricRequest, opts ...grpc.CallOption) (*GetListMetricResponse, error)
-	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
+	Save(ctx context.Context, in *SaveMetricsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SaveList(ctx context.Context, in *SaveListMetricsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Get(ctx context.Context, in *GetMetricsRequest, opts ...grpc.CallOption) (*GetMetricsResponse, error)
+	GetList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetListMetricsResponse, error)
+	Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
 type metricsClient struct {
@@ -45,8 +46,8 @@ func NewMetricsClient(cc grpc.ClientConnInterface) MetricsClient {
 	return &metricsClient{cc}
 }
 
-func (c *metricsClient) Save(ctx context.Context, in *SaveMetricRequest, opts ...grpc.CallOption) (*SaveMetricResponse, error) {
-	out := new(SaveMetricResponse)
+func (c *metricsClient) Save(ctx context.Context, in *SaveMetricsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Metrics_Save_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -54,8 +55,8 @@ func (c *metricsClient) Save(ctx context.Context, in *SaveMetricRequest, opts ..
 	return out, nil
 }
 
-func (c *metricsClient) SaveList(ctx context.Context, in *SaveListMetricsRequest, opts ...grpc.CallOption) (*SaveListMetricsResponse, error) {
-	out := new(SaveListMetricsResponse)
+func (c *metricsClient) SaveList(ctx context.Context, in *SaveListMetricsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Metrics_SaveList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -63,8 +64,8 @@ func (c *metricsClient) SaveList(ctx context.Context, in *SaveListMetricsRequest
 	return out, nil
 }
 
-func (c *metricsClient) Get(ctx context.Context, in *GetMetricRequest, opts ...grpc.CallOption) (*GetMetricResponse, error) {
-	out := new(GetMetricResponse)
+func (c *metricsClient) Get(ctx context.Context, in *GetMetricsRequest, opts ...grpc.CallOption) (*GetMetricsResponse, error) {
+	out := new(GetMetricsResponse)
 	err := c.cc.Invoke(ctx, Metrics_Get_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -72,8 +73,8 @@ func (c *metricsClient) Get(ctx context.Context, in *GetMetricRequest, opts ...g
 	return out, nil
 }
 
-func (c *metricsClient) GetList(ctx context.Context, in *GetListMetricRequest, opts ...grpc.CallOption) (*GetListMetricResponse, error) {
-	out := new(GetListMetricResponse)
+func (c *metricsClient) GetList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetListMetricsResponse, error) {
+	out := new(GetListMetricsResponse)
 	err := c.cc.Invoke(ctx, Metrics_GetList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -81,7 +82,7 @@ func (c *metricsClient) GetList(ctx context.Context, in *GetListMetricRequest, o
 	return out, nil
 }
 
-func (c *metricsClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
+func (c *metricsClient) Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PingResponse, error) {
 	out := new(PingResponse)
 	err := c.cc.Invoke(ctx, Metrics_Ping_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -94,11 +95,11 @@ func (c *metricsClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.
 // All implementations must embed UnimplementedMetricsServer
 // for forward compatibility
 type MetricsServer interface {
-	Save(context.Context, *SaveMetricRequest) (*SaveMetricResponse, error)
-	SaveList(context.Context, *SaveListMetricsRequest) (*SaveListMetricsResponse, error)
-	Get(context.Context, *GetMetricRequest) (*GetMetricResponse, error)
-	GetList(context.Context, *GetListMetricRequest) (*GetListMetricResponse, error)
-	Ping(context.Context, *PingRequest) (*PingResponse, error)
+	Save(context.Context, *SaveMetricsRequest) (*emptypb.Empty, error)
+	SaveList(context.Context, *SaveListMetricsRequest) (*emptypb.Empty, error)
+	Get(context.Context, *GetMetricsRequest) (*GetMetricsResponse, error)
+	GetList(context.Context, *emptypb.Empty) (*GetListMetricsResponse, error)
+	Ping(context.Context, *emptypb.Empty) (*PingResponse, error)
 	mustEmbedUnimplementedMetricsServer()
 }
 
@@ -106,19 +107,19 @@ type MetricsServer interface {
 type UnimplementedMetricsServer struct {
 }
 
-func (UnimplementedMetricsServer) Save(context.Context, *SaveMetricRequest) (*SaveMetricResponse, error) {
+func (UnimplementedMetricsServer) Save(context.Context, *SaveMetricsRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Save not implemented")
 }
-func (UnimplementedMetricsServer) SaveList(context.Context, *SaveListMetricsRequest) (*SaveListMetricsResponse, error) {
+func (UnimplementedMetricsServer) SaveList(context.Context, *SaveListMetricsRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveList not implemented")
 }
-func (UnimplementedMetricsServer) Get(context.Context, *GetMetricRequest) (*GetMetricResponse, error) {
+func (UnimplementedMetricsServer) Get(context.Context, *GetMetricsRequest) (*GetMetricsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedMetricsServer) GetList(context.Context, *GetListMetricRequest) (*GetListMetricResponse, error) {
+func (UnimplementedMetricsServer) GetList(context.Context, *emptypb.Empty) (*GetListMetricsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetList not implemented")
 }
-func (UnimplementedMetricsServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
+func (UnimplementedMetricsServer) Ping(context.Context, *emptypb.Empty) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 func (UnimplementedMetricsServer) mustEmbedUnimplementedMetricsServer() {}
@@ -135,7 +136,7 @@ func RegisterMetricsServer(s grpc.ServiceRegistrar, srv MetricsServer) {
 }
 
 func _Metrics_Save_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SaveMetricRequest)
+	in := new(SaveMetricsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -147,7 +148,7 @@ func _Metrics_Save_Handler(srv interface{}, ctx context.Context, dec func(interf
 		FullMethod: Metrics_Save_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServer).Save(ctx, req.(*SaveMetricRequest))
+		return srv.(MetricsServer).Save(ctx, req.(*SaveMetricsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -171,7 +172,7 @@ func _Metrics_SaveList_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _Metrics_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetMetricRequest)
+	in := new(GetMetricsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -183,13 +184,13 @@ func _Metrics_Get_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: Metrics_Get_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServer).Get(ctx, req.(*GetMetricRequest))
+		return srv.(MetricsServer).Get(ctx, req.(*GetMetricsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Metrics_GetList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetListMetricRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -201,13 +202,13 @@ func _Metrics_GetList_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: Metrics_GetList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServer).GetList(ctx, req.(*GetListMetricRequest))
+		return srv.(MetricsServer).GetList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Metrics_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PingRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -219,7 +220,7 @@ func _Metrics_Ping_Handler(srv interface{}, ctx context.Context, dec func(interf
 		FullMethod: Metrics_Ping_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServer).Ping(ctx, req.(*PingRequest))
+		return srv.(MetricsServer).Ping(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
