@@ -6,9 +6,14 @@ package metrics;
 
 option go_package = "github.com/artems723/monik/internal/server/proto";
 
+enum MetricType {
+  COUNTER = 0;
+  GAUGE = 1;
+}
+
 message Metric {
   string id = 1;
-  string mtype = 2;
+  MetricType mtype = 2;
   optional int64 delta = 3;
   optional double value = 4;
   string Hash = 5;
