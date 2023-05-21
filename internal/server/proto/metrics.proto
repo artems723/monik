@@ -14,7 +14,7 @@ message Metric {
   string Hash = 5;
 }
 
-message SaveMetricRequest {
+message SaveMetricsRequest {
   Metric metric = 1;
 }
 
@@ -22,15 +22,15 @@ message SaveListMetricsRequest {
   repeated Metric metric = 1;
 }
 
-message GetMetricRequest {
+message GetMetricsRequest {
   string metricName = 1;
 }
 
-message GetMetricResponse {
+message GetMetricsResponse {
   Metric metric = 1;
 }
 
-message GetListMetricResponse {
+message GetListMetricsResponse {
   repeated Metric metric = 1;
 }
 
@@ -39,9 +39,9 @@ message PingResponse {
 }
 
 service Metrics {
-  rpc Save(SaveMetricRequest) returns (google.protobuf.Empty);
+  rpc Save(SaveMetricsRequest) returns (google.protobuf.Empty);
   rpc SaveList(SaveListMetricsRequest) returns (google.protobuf.Empty);
-  rpc Get(GetMetricRequest) returns (GetMetricResponse);
-  rpc GetList(google.protobuf.Empty) returns (GetListMetricResponse);
+  rpc Get(GetMetricsRequest) returns (GetMetricsResponse);
+  rpc GetList(google.protobuf.Empty) returns (GetListMetricsResponse);
   rpc Ping(google.protobuf.Empty) returns (PingResponse);
 }
