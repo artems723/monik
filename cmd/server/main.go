@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/artems723/monik/internal/server/grpcserver"
+	"google.golang.org/grpc"
 	"log"
 	"os"
 	"os/signal"
@@ -98,9 +99,12 @@ func main() {
 	// Create server
 	srv := httpserver.New()
 
+	var gsrv *grpc.Server
 	if cfg.GRPCEnabled {
-		grpcsrv := grpcserver.New(serv, cfg)
-		go grpcsrv.Start()
+		go func() {
+			grpcsrv := grpcserver.New(serv, cfg)
+			gsrv = grpcsrv.Start()
+		}()
 	}
 
 	// Create channel for graceful shutdown
@@ -116,6 +120,13 @@ func main() {
 	err = srv.Shutdown(context.Background())
 	if err != nil {
 		log.Fatalf("Server shutdown Failed:%+v", err)
+	}
+	// Shutdown grpc server
+	if cfg.GRPCEnabled {
+		gsrv.GracefulStop()
+		if err != nil {
+			log.Fatalf("GRPC Server shutdown failed:%+v", err)
+		}
 	}
 	err = serv.Shutdown()
 	if err != nil {

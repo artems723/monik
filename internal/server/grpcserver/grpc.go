@@ -22,7 +22,7 @@ func New(serv *service.Service, cfg config.Config) *MetricsServer {
 }
 
 // start GRPC server
-func (s *MetricsServer) Start() {
+func (s *MetricsServer) Start() *grpc.Server {
 	listen, err := net.Listen("tcp", ":3200")
 	if err != nil {
 		log.Fatal(err)
@@ -32,6 +32,7 @@ func (s *MetricsServer) Start() {
 	if err := serv.Serve(listen); err != nil {
 		log.Fatal(err)
 	}
+	return serv
 }
 
 type MetricsServer struct {
