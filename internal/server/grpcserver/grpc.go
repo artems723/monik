@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"net"
 )
@@ -41,8 +42,8 @@ type MetricsServer struct {
 	Cfg     config.Config
 }
 
-func (s *MetricsServer) Save(ctx context.Context, in *pb.SaveMetricRequest) (*pb.SaveMetricResponse, error) {
-	var resp pb.SaveMetricResponse
+func (s *MetricsServer) Save(ctx context.Context, in *pb.SaveMetricsRequest) (*emptypb.Empty, error) {
+	empty := &emptypb.Empty{}
 	metric, err := ConvertGRPCtoMetric(in.Metric)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -51,12 +52,12 @@ func (s *MetricsServer) Save(ctx context.Context, in *pb.SaveMetricRequest) (*pb
 	if err != nil {
 		return nil, status.Error(errMapping(err), err.Error())
 	}
-	return &resp, nil
+	return empty, nil
 
 }
-func (s *MetricsServer) SaveList(ctx context.Context, in *pb.SaveListMetricsRequest) (*pb.SaveListMetricsResponse, error) {
+func (s *MetricsServer) SaveList(ctx context.Context, in *pb.SaveListMetricsRequest) (*emptypb.Empty, error) {
 	var metrics []*domain.Metric
-	var resp pb.SaveListMetricsResponse
+	empty := &emptypb.Empty{}
 	for _, v := range in.Metric {
 		m, err := ConvertGRPCtoMetric(v)
 		if err != nil {
@@ -68,26 +69,36 @@ func (s *MetricsServer) SaveList(ctx context.Context, in *pb.SaveListMetricsRequ
 	if err != nil {
 		return nil, status.Error(errMapping(err), err.Error())
 	}
-	return &resp, nil
+	return empty, nil
 }
 
-func (s *MetricsServer) Get(ctx context.Context, in *pb.GetMetricRequest) (*pb.GetMetricResponse, error) {
-	var resp pb.GetMetricResponse
+func (s *MetricsServer) Get(ctx context.Context, in *pb.GetMetricsRequest) (*pb.GetMetricsResponse, error) {
+	var resp pb.GetMetricsResponse
 	metricValue, err := s.service.GetMetric(ctx, domain.NewMetric(in.MetricName, ""))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	resp.Metric = &pb.Metric{
-		Id:    metricValue.ID,
-		Mtype: string(metricValue.MType),
-		Value: *metricValue.Value,
-		Delta: *metricValue.Delta,
+
+	switch metricValue.MType {
+	case domain.MetricTypeCounter:
+		resp.Metric = &pb.Metric{
+			Id:    metricValue.ID,
+			Mtype: pb.MetricType_COUNTER,
+			Delta: metricValue.Delta,
+		}
+	case domain.MetricTypeGauge:
+		resp.Metric = &pb.Metric{
+			Id:    metricValue.ID,
+			Mtype: pb.MetricType_GAUGE,
+			Value: metricValue.Value,
+		}
 	}
+
 	return &resp, nil
 }
 
-func (s *MetricsServer) GetList(ctx context.Context, in *pb.GetListMetricRequest) (*pb.GetListMetricResponse, error) {
-	var resp pb.GetListMetricResponse
+func (s *MetricsServer) GetList(ctx context.Context, in *emptypb.Empty) (*pb.GetListMetricsResponse, error) {
+	var resp pb.GetListMetricsResponse
 	var result []*pb.Metric
 	metricList, err := s.service.GetAllMetrics(ctx)
 	if err != nil {
@@ -100,7 +111,7 @@ func (s *MetricsServer) GetList(ctx context.Context, in *pb.GetListMetricRequest
 	return &resp, nil
 }
 
-func (s *MetricsServer) Ping(ctx context.Context, in *pb.PingRequest) (*pb.PingResponse, error) {
+func (s *MetricsServer) Ping(ctx context.Context, in *emptypb.Empty) (*pb.PingResponse, error) {
 	var resp pb.PingResponse
 	err := s.service.Ping()
 	if err != nil {
@@ -139,12 +150,10 @@ func ConvertGRPCtoMetric(in *pb.Metric) (domain.Metric, error) {
 		Hash:  in.Hash,
 	}
 	switch in.Mtype {
-	case "gauge":
-		value := in.Value
-		metric.Value = &value
-	case "counter":
-		value := in.Delta
-		metric.Delta = &value
+	case pb.MetricType_GAUGE:
+		metric.Value = in.Value
+	case pb.MetricType_COUNTER:
+		metric.Delta = in.Delta
 	default:
 		return domain.Metric{}, ErrWrongType
 	}
@@ -153,6 +162,7 @@ func ConvertGRPCtoMetric(in *pb.Metric) (domain.Metric, error) {
 
 func ConvertMetrictoGRPC(in domain.Metric) *pb.Metric {
 	var value float64
+	var result pb.Metric
 	if in.Value != nil {
 		value = *in.Value
 	}
@@ -160,12 +170,22 @@ func ConvertMetrictoGRPC(in domain.Metric) *pb.Metric {
 	if in.Delta != nil {
 		delta = *in.Delta
 	}
-	result := pb.Metric{
-		Id:    in.ID,
-		Mtype: string(in.MType),
-		Value: value,
-		Delta: delta,
-		Hash:  in.Hash,
+	switch in.MType {
+	case domain.MetricTypeCounter:
+		result = pb.Metric{
+			Id:    in.ID,
+			Mtype: pb.MetricType_COUNTER,
+			Delta: &delta,
+			Hash:  in.Hash,
+		}
+	case domain.MetricTypeGauge:
+		result = pb.Metric{
+			Id:    in.ID,
+			Mtype: pb.MetricType_GAUGE,
+			Value: &value,
+			Hash:  in.Hash,
+		}
 	}
+
 	return &result
 }
