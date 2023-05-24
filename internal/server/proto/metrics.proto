@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package metrics;
+
+option go_package = "github.com/artems723/monik/internal/server/proto";
+
+enum MetricType {
+  COUNTER = 0;
+  GAUGE = 1;
+}
+
+message Metric {
+  string id = 1;
+  MetricType mtype = 2;
+  optional int64 delta = 3;
+  optional double value = 4;
+  string Hash = 5;
+}
+
+message SaveMetricsRequest {
+  Metric metric = 1;
+}
+
+message SaveListMetricsRequest {
+  repeated Metric metric = 1;
+}
+
+message GetMetricsRequest {
+  string metricName = 1;
+}
+
+message GetMetricsResponse {
+  Metric metric = 1;
+}
+
+message GetListMetricsResponse {
+  repeated Metric metric = 1;
+}
+
+message PingResponse {
+  bool ping = 1;
+}
+
+service Metrics {
+  rpc Save(SaveMetricsRequest) returns (google.protobuf.Empty);
+  rpc SaveList(SaveListMetricsRequest) returns (google.protobuf.Empty);
+  rpc Get(GetMetricsRequest) returns (GetMetricsResponse);
+  rpc GetList(google.protobuf.Empty) returns (GetListMetricsResponse);
+  rpc Ping(google.protobuf.Empty) returns (PingResponse);
+}

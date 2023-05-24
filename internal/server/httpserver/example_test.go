@@ -22,5 +22,5 @@ func ExampleServer() {
 	srv := New()
 	defer srv.Shutdown(context.Background())
 	// Run server
-	srv.Run(cfg.Address, h.InitRoutes())
+	srv.Run(cfg.Address, h.InitRoutes(cfg))
 }

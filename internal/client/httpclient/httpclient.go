@@ -4,6 +4,7 @@ package httpclient
 import (
 	"encoding/json"
 	"log"
+	"net"
 
 	"github.com/artems723/monik/internal/client/agent"
 	"github.com/go-resty/resty/v2"
@@ -38,6 +39,7 @@ func (c HTTPClient) SendData(metrics []*agent.Metric, URL string) ([]agent.Metri
 	_, err = c.client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept-Encoding", "gzip").
+		SetHeader("X-Real-IP", GetLocalIP()).
 		SetBody(m).
 		SetResult(&result).
 		Post(URL)
@@ -50,4 +52,20 @@ func (c HTTPClient) SendData(metrics []*agent.Metric, URL string) ([]agent.Metri
 
 func (c HTTPClient) SetRootCertificate(certFile string) {
 	c.client.SetRootCertificate(certFile)
+}
+
+func GetLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	for _, address := range addrs {
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && !ipnet.IP.IsLinkLocalUnicast() {
+			if ipnet.IP.To4() != nil {
+				log.Printf("httpclient.GetLocalIP: %s", ipnet.IP.String())
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
 }

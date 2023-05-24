@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"github.com/artems723/monik/internal/server/grpcserver"
+	"google.golang.org/grpc"
 	"log"
 	"os"
 	"os/signal"
@@ -46,6 +48,8 @@ func main() {
 	flag.StringVar(&cfg.CryptoKey, "crypto-key", pathCryptoKey, "string, crypto key path")
 	pathCertFile := filepath.Join("crypto", "server.crt")
 	flag.StringVar(&cfg.CertFile, "cert-file", pathCertFile, "string, cert file path")
+	flag.StringVar(&cfg.TrustedSubnet, "t", "", "string, trusted subnet")
+	flag.BoolVar(&cfg.GRPCEnabled, "grpc", false, "bool value determines whether to enable GRPC server.")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
@@ -67,7 +71,7 @@ func main() {
 		}
 	}
 
-	log.Printf("Using config: Address: %s, EnableHTTPS: %v, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s, ConfigFile: %s", cfg.Address, cfg.EnableHTTPS, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN, cfg.ConfigFile)
+	log.Printf("Using config: Address: %s, EnableHTTPS: %v, Restore: %v, StoreInterval: %v, StoreFile: %s, Key: %s, DatabaseDSN: %s, ConfigFile: %s, TrustedSubnet: %s", cfg.Address, cfg.EnableHTTPS, cfg.Restore, cfg.StoreInterval, cfg.StoreFile, cfg.Key, cfg.DatabaseDSN, cfg.ConfigFile, cfg.TrustedSubnet)
 
 	// Create storage
 	var repo service.Repository
@@ -95,12 +99,20 @@ func main() {
 	// Create server
 	srv := httpserver.New()
 
+	var gsrv *grpc.Server
+	if cfg.GRPCEnabled {
+		go func() {
+			grpcsrv := grpcserver.New(serv, cfg)
+			gsrv = grpcsrv.Start()
+		}()
+	}
+
 	// Create channel for graceful shutdown
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	// Start http server
-	go srv.Start(cfg, h.InitRoutes())
+	go srv.Start(cfg, h.InitRoutes(cfg))
 	log.Printf("Server started")
 
 	<-done
@@ -108,6 +120,13 @@ func main() {
 	err = srv.Shutdown(context.Background())
 	if err != nil {
 		log.Fatalf("Server shutdown Failed:%+v", err)
+	}
+	// Shutdown grpc server
+	if cfg.GRPCEnabled {
+		gsrv.GracefulStop()
+		if err != nil {
+			log.Fatalf("GRPC Server shutdown failed:%+v", err)
+		}
 	}
 	err = serv.Shutdown()
 	if err != nil {
